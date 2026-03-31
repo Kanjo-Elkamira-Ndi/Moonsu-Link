@@ -1,4 +1,4 @@
-# 🌱 Moonu Link
+# 🌱 Moonsu Link
 
 > Connecting Cameroonian farmers with buyers via Telegram, SMS (MTN/Orange/Camtel), and WhatsApp.
 > Built for FarmerHack 2026 — Rebase Code Camp.
