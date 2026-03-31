@@ -16,7 +16,7 @@ All interactions happen over **Telegram**, **SMS**, or **WhatsApp** — no app d
 
 ---
 
-## Monorepo Structure
+## Proposed Monorepo Structure
 
 ```
 Moonu Link/
