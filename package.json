@@ -1,0 +1,29 @@
+{
+  "name": "moonsu-link",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WhatsApp/Telegram/SMS platform connecting Cameroonian farmers with buyers",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w packages/api\" \"npm run dev -w packages/bot\" \"npm run dev -w packages/admin\"",
+    "dev:api": "npm run dev -w packages/api",
+    "dev:bot": "npm run dev -w packages/bot",
+    "dev:admin": "npm run dev -w packages/admin",
+    "build": "npm run build -w packages/api && npm run build -w packages/bot && npm run build -w packages/admin",
+    "lint": "eslint packages/*/src --ext .ts,.tsx",
+    "migrate": "npm run migrate -w packages/api",
+    "seed": "npm run seed -w packages/api"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
