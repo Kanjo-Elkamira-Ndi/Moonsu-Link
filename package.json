@@ -1,0 +1,25 @@
+{
+  "name": "moonsulink",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:bot\" \"npm run dev:admin\"",
+    "dev:api": "npm run dev --workspace=packages/api",
+    "dev:bot": "npm run dev --workspace=packages/bot",
+    "dev:admin": "npm run dev --workspace=packages/admin",
+    "migrate": "npm run migrate --workspace=packages/api",
+    "seed": "npm run seed --workspace=packages/api",
+    "build": "npm run build --workspace=packages/api && npm run build --workspace=packages/admin",
+    "lint": "eslint packages/*/src --ext .ts,.tsx"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}
