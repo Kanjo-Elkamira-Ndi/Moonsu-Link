@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 
-// ─── Auth middleware ──────────────────────────────────────────────────────────
+// ─── Auth middleware
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   const auth = req.headers.authorization;
@@ -28,7 +28,7 @@ export function requireApiSecret(req: Request, res: Response, next: NextFunction
   next();
 }
 
-// ─── Error handler ────────────────────────────────────────────────────────────
+// ─── Error handler 
 
 export function errorHandler(
   err: Error,
@@ -41,7 +41,7 @@ export function errorHandler(
   res.status(500).json({ error: 'Internal server error' });
 }
 
-// ─── Request logger ───────────────────────────────────────────────────────────
+// ─── Request logger 
 
 export function requestLogger(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now();
