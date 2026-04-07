@@ -15,7 +15,7 @@ export default function App() {
 
   return (
     <Routes>
-      <Route element={<DashboardLayout onLogout={logout} />}>
+      <Route element={<DashboardLayout token={token!} onLogout={logout} />}>
         <Route index element={<Navigate to="/listings" replace />} />
         <Route path="/listings" element={<ListingsPage token={token!} />} />
         <Route path="/prices"   element={<PricesPage   token={token!} />} />
