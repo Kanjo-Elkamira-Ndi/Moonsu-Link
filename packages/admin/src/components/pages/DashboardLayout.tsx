@@ -22,15 +22,8 @@ const links = [
     to: '/listings',
     label: 'Listings',
     icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-5 w-5"
-      >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+        strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <path d="M4 7h16M4 12h16M4 17h10" />
       </svg>
     ),
@@ -39,15 +32,8 @@ const links = [
     to: '/prices',
     label: 'Prices',
     icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-5 w-5"
-      >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+        strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <circle cx="12" cy="12" r="8" />
         <path d="M12 8v8M9 10h6" />
       </svg>
@@ -57,17 +43,21 @@ const links = [
     to: '/users',
     label: 'Users',
     icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-5 w-5"
-      >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+        strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <path d="M17 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
         <circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
+  },
+  {
+    to: '/alerts',
+    label: 'Alerts',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+        strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
     ),
   },
@@ -77,6 +67,7 @@ const pageTitles: Record<string, string> = {
   '/listings': 'Listings',
   '/prices': 'Market Prices',
   '/users': 'Users',
+  '/alerts': 'Alerts',
 };
 
 export function DashboardLayout({ token, onLogout }: Props) {
@@ -84,6 +75,7 @@ export function DashboardLayout({ token, onLogout }: Props) {
   const navigate = useNavigate();
   const pageTitle = pageTitles[location.pathname] ?? 'Dashboard';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pendingAlertsCount, setPendingAlertsCount] = useState(0);
   const [stats, setStats] = useState<DashboardStats>({
     totalListings: 0,
     activeListings: 0,
@@ -98,10 +90,11 @@ export function DashboardLayout({ token, onLogout }: Props) {
   const loadStats = async () => {
     setStatsLoading(true);
     try {
-      const [listings, prices, users] = await Promise.all([
+      const [listings, prices, users, alerts] = await Promise.all([
         api.getListings(token),
         api.getPrices(token),
         api.getUsers(token),
+        api.getAlerts(token).catch(() => []),
       ]);
 
       const now = Date.now();
@@ -111,6 +104,8 @@ export function DashboardLayout({ token, onLogout }: Props) {
       }).length;
 
       const activeListings = listings.filter((listing) => listing.status === 'active').length;
+
+      setPendingAlertsCount((alerts as any[]).filter((a: any) => a.status === 'pending').length);
 
       setStats({
         totalListings: listings.length,
@@ -209,7 +204,12 @@ export function DashboardLayout({ token, onLogout }: Props) {
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
                   {link.icon}
                 </span>
-                {link.label}
+                <span className="flex-1">{link.label}</span>
+                {link.to === '/alerts' && pendingAlertsCount > 0 && (
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                    {pendingAlertsCount}
+                  </span>
+                )}
               </NavLink>
             ))}
             <button
@@ -268,7 +268,12 @@ export function DashboardLayout({ token, onLogout }: Props) {
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
                 {link.icon}
               </span>
-              {link.label}
+              <span className="flex-1">{link.label}</span>
+              {link.to === '/alerts' && pendingAlertsCount > 0 && (
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                  {pendingAlertsCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -318,6 +323,18 @@ export function DashboardLayout({ token, onLogout }: Props) {
                   className="rounded-2xl sm:rounded-3xl border border-brand-200 bg-brand-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-brand-700 transition hover:bg-brand-100"
                 >
                   View listings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/alerts')}
+                  className="relative rounded-2xl sm:rounded-3xl border border-amber-200 bg-amber-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
+                >
+                  Alerts
+                  {pendingAlertsCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                      {pendingAlertsCount}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>

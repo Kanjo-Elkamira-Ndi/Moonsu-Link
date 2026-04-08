@@ -38,4 +38,20 @@ export const api = {
 
   getUsers: (token: string) =>
     request<any[]>('/users', {}, token),
+
+  // ── Alerts ────────────────────────────────────────────────────────────────
+  getAlerts: (token: string) =>
+    request<any[]>('/alerts', {}, token),
+
+  createAlert: (
+    token: string,
+    data: { title: string; message: string; severity: string; region?: string; submitted_by?: string },
+  ) =>
+    request<any>('/alerts', { method: 'POST', body: JSON.stringify(data) }, token),
+
+  publishAlert: (token: string, id: string) =>
+    request<{ ok: boolean }>(`/alerts/${id}/publish`, { method: 'PATCH' }, token),
+
+  dismissAlert: (token: string, id: string) =>
+    request<{ ok: boolean }>(`/alerts/${id}/dismiss`, { method: 'PATCH' }, token),
 };
