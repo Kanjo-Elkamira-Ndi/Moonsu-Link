@@ -51,16 +51,16 @@ export function PricesPage({ token }: Props) {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Market Prices</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Add or update today's prices. Farmers query these via SMS/Telegram.</p>
+        <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Market Prices</h1>
+        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Add or update today's prices. Farmers query these via SMS/Telegram.</p>
       </div>
 
       {/* Add / Edit form */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="rounded-xl border border-gray-200 p-4 sm:p-5">
         <h2 className="text-sm font-medium text-gray-700 mb-4">Update a price</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
             { key: 'crop',      label: 'Crop',       placeholder: 'e.g. maize' },
             { key: 'market',    label: 'Market',     placeholder: 'e.g. Yaoundé' },
@@ -75,7 +75,7 @@ export function PricesPage({ token }: Props) {
                 value={(form as any)[key]}
                 onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                 placeholder={placeholder}
-                className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           ))}
@@ -83,9 +83,9 @@ export function PricesPage({ token }: Props) {
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-lg px-4 py-1.5 text-sm font-medium transition-colors"
+              className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             >
-              {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save price'}
+              {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save'}
             </button>
           </div>
         </form>
@@ -95,27 +95,27 @@ export function PricesPage({ token }: Props) {
       {loading ? (
         <p className="text-sm text-gray-400">Loading...</p>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="border border-gray-200 rounded-xl overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm whitespace-nowrap">
             <thead>
-              <tr className="border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wide">
-                <th className="text-left px-4 py-3">Crop</th>
-                <th className="text-left px-4 py-3">Market</th>
-                <th className="text-left px-4 py-3">Region</th>
-                <th className="text-left px-4 py-3">Min</th>
-                <th className="text-left px-4 py-3">Max</th>
-                <th className="text-left px-4 py-3">Date</th>
+              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 uppercase tracking-wide">
+                <th className="text-left px-3 sm:px-4 py-3">Crop</th>
+                <th className="text-left px-3 sm:px-4 py-3">Market</th>
+                <th className="text-left px-3 sm:px-4 py-3">Region</th>
+                <th className="text-left px-3 sm:px-4 py-3">Min</th>
+                <th className="text-left px-3 sm:px-4 py-3">Max</th>
+                <th className="text-left px-3 sm:px-4 py-3">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {prices.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium capitalize">{p.crop}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.market}</td>
-                  <td className="px-4 py-3 text-gray-400">{p.region ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.min_price} FCFA</td>
-                  <td className="px-4 py-3 text-gray-600">{p.max_price} FCFA</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">{p.recorded_at}</td>
+                  <td className="px-3 sm:px-4 py-3 font-medium capitalize">{p.crop}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{p.market}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-400">{p.region ?? '—'}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{p.min_price}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{p.max_price}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-400 text-xs">{new Date(p.recorded_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</td>
                 </tr>
               ))}
               {prices.length === 0 && (

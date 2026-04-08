@@ -83,6 +83,7 @@ export function DashboardLayout({ token, onLogout }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = pageTitles[location.pathname] ?? 'Dashboard';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     totalListings: 0,
     activeListings: 0,
@@ -159,143 +160,206 @@ export function DashboardLayout({ token, onLogout }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col lg:flex-row">
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-r from-brand-500 via-cyan-400 to-slate-500 opacity-5 pointer-events-none" />
-      <div className="relative flex min-h-screen">
-        <aside className="w-72 shrink-0 bg-white border-r border-slate-200 shadow-[0_0_45px_rgba(15,23,42,0.06)] flex flex-col">
-          <div className="px-6 py-7 border-b border-slate-200">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 shadow-sm">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                >
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z" />
-                </svg>
-              </span>
-              <div>
-                <p className="text-lg font-semibold text-slate-900">MoonsuLink</p>
-                <p className="text-sm text-slate-500 mt-0.5">Admin dashboard</p>
-              </div>
-            </div>
-            <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-              Clean tracking for listings, market prices, and users.
-            </div>
+      
+      {/* Mobile Header */}
+      <div className="sticky top-0 z-40 bg-white border-b border-slate-200 lg:hidden">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z" />
+              </svg>
+            </span>
+            <span className="text-sm font-semibold text-slate-900">MoonsuLink</span>
           </div>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+          >
+            {mobileMenuOpen ? (
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
 
-          <nav className="flex-1 px-4 py-6 space-y-2">
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <nav className="border-t border-slate-200 px-2 py-3 space-y-1">
             {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
+                onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${
+                  `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
                     isActive
-                      ? 'bg-brand-50 text-brand-700 shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-brand-50 text-brand-700'
+                      : 'text-slate-600 hover:bg-slate-100'
                   }`
                 }
               >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
                   {link.icon}
                 </span>
                 {link.label}
               </NavLink>
             ))}
-          </nav>
-
-          <div className="px-6 py-6 border-t border-slate-200">
             <button
-              onClick={onLogout}
-              className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              onClick={() => {
+                onLogout();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
             >
               Sign out
             </button>
+          </nav>
+        )}
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-72 shrink-0 bg-white border-r border-slate-200 shadow-[0_0_45px_rgba(15,23,42,0.06)] flex-col sticky top-0 h-screen">
+        <div className="px-6 py-7 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 shadow-sm">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z" />
+              </svg>
+            </span>
+            <div>
+              <p className="text-lg font-semibold text-slate-900">MoonsuLink</p>
+              <p className="text-sm text-slate-500 mt-0.5">Admin dashboard</p>
+            </div>
           </div>
-        </aside>
+          <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+            Clean tracking for listings, market prices, and users.
+          </div>
+        </div>
 
-        <main className="flex-1 overflow-auto">
-          <div className="p-6">
-            <div className="mb-6 rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-600">Welcome back</p>
-                  <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{pageTitle}</h1>
-                  <p className="mt-2 text-sm text-slate-500 max-w-2xl">
-                    A polished admin experience for managing core platform data with confidence.
-                  </p>
-                </div>
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          {links.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${
+                  isActive
+                    ? 'bg-brand-50 text-brand-700 shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`
+              }
+            >
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                {link.icon}
+              </span>
+              {link.label}
+            </NavLink>
+          ))}
+        </nav>
 
-                <div className="flex flex-wrap gap-3 self-stretch sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={loadStats}
-                    disabled={statsLoading}
-                    className="rounded-3xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {statsLoading ? 'Refreshing…' : 'Refresh stats'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/prices')}
-                    className="rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Add price
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/listings')}
-                    className="rounded-3xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-100"
-                  >
-                    View listings
-                  </button>
-                </div>
+        <div className="px-6 py-6 border-t border-slate-200">
+          <button
+            onClick={onLogout}
+            className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto relative">
+        <div className="p-4 sm:p-6">
+          <div className="mb-6 rounded-2xl sm:rounded-[2rem] border border-slate-200 bg-white/90 p-4 sm:p-6 shadow-sm backdrop-blur">
+            <div className="flex flex-col gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-600">Welcome back</p>
+                <h1 className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">{pageTitle}</h1>
+                <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-2xl">
+                  A polished admin experience for managing core platform data with confidence.
+                </p>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Listings</p>
-                  <p className="mt-3 text-3xl font-semibold text-slate-900">{stats.totalListings}</p>
-                  <p className="mt-2 text-sm text-slate-500">{stats.activeListings} active · {stats.expiredListings} expired</p>
-                </div>
-                <div className="rounded-3xl border border-slate-200 bg-brand-50 p-5 text-brand-700">
-                  <p className="text-xs uppercase tracking-[0.22em] text-brand-600">Prices</p>
-                  <p className="mt-3 text-3xl font-semibold">{stats.totalPrices}</p>
-                  <p className="mt-2 text-sm">Latest market reference</p>
-                </div>
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Users</p>
-                  <p className="mt-3 text-3xl font-semibold text-slate-900">{stats.totalUsers}</p>
-                  <p className="mt-2 text-sm text-slate-500">Updated {stats.lastUpdated}</p>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <button
                   type="button"
-                  onClick={exportListingsCsv}
-                  disabled={statsLoading || stats.listings.length === 0}
-                  className="rounded-3xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={loadStats}
+                  disabled={statsLoading}
+                  className="rounded-2xl sm:rounded-3xl bg-slate-900 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Export listings CSV
+                  {statsLoading ? 'Refreshing…' : 'Refresh'}
                 </button>
-                <span className="self-center text-sm text-slate-500">
-                  Export your current listings data for offline review.
-                </span>
+                <button
+                  type="button"
+                  onClick={() => navigate('/prices')}
+                  className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Add price
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/listings')}
+                  className="rounded-2xl sm:rounded-3xl border border-brand-200 bg-brand-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-brand-700 transition hover:bg-brand-100"
+                >
+                  View listings
+                </button>
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-              <Outlet />
+            <div className="mt-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Listings</p>
+                <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold text-slate-900">{stats.totalListings}</p>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-500">{stats.activeListings} active · {stats.expiredListings} expired</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-brand-50 p-4 sm:p-5 text-brand-700">
+                <p className="text-xs uppercase tracking-[0.22em] text-brand-600">Prices</p>
+                <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold">{stats.totalPrices}</p>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm">Latest market reference</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Users</p>
+                <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold text-slate-900">{stats.totalUsers}</p>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-500">Updated {stats.lastUpdated}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
+              <button
+                type="button"
+                onClick={exportListingsCsv}
+                disabled={statsLoading || stats.listings.length === 0}
+                className="rounded-2xl sm:rounded-3xl bg-slate-900 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Export CSV
+              </button>
+              <span className="text-xs sm:text-sm text-slate-500">
+                Export your listings data for offline review.
+              </span>
             </div>
           </div>
-        </main>
-      </div>
+
+          <div className="rounded-2xl sm:rounded-[2rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <Outlet />
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
