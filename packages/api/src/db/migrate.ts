@@ -11,9 +11,31 @@ const migrations: Array<{ name: string; sql: string }> = [
         channel     VARCHAR(20) NOT NULL DEFAULT 'sms',
         lang        VARCHAR(5)  NOT NULL DEFAULT 'en',
         role        VARCHAR(20) NOT NULL DEFAULT 'farmer',
+        region      VARCHAR(100),
+        verified    BOOLEAN NOT NULL DEFAULT FALSE,
+        telegram_id VARCHAR(100),
+        telegram_phone VARCHAR(20),
+        whatsapp_phone VARCHAR(20),
+        id_pic_url TEXT,
+        selfie_pic_url TEXT,
+        selfie_with_id_pic_url TEXT,
         created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+    `,
+  },
+  {
+    name: 'add missing user profile columns',
+    sql: `
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS region VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS telegram_id VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS telegram_phone VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS whatsapp_phone VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS id_pic_url TEXT,
+        ADD COLUMN IF NOT EXISTS selfie_pic_url TEXT,
+        ADD COLUMN IF NOT EXISTS selfie_with_id_pic_url TEXT;
     `,
   },
   {

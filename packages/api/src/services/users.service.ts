@@ -25,7 +25,17 @@ export const usersService = {
 
   async list() {
     const { rows } = await pool.query(
-      `SELECT id, phone, name, channel, lang, role, created_at FROM users ORDER BY created_at DESC`,
+      `SELECT id,
+              name,
+              role,
+              region,
+              lang,
+              verified,
+              telegram_id AS "telegramId",
+              telegram_phone AS "telegramPhone",
+              whatsapp_phone AS "whatsappPhone"
+       FROM users
+       ORDER BY created_at DESC`,
     );
     return rows;
   },
