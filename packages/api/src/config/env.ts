@@ -29,6 +29,12 @@ const envSchema = z.object({
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   WHATSAPP_VERIFY_TOKEN: z.string().optional(),
 
+  // Unipile / WhatsApp
+  UNIPILE_DSN:        z.string().optional(),
+  UNIPILE_API_KEY:    z.string().optional(),
+  UNIPILE_ACCOUNT_ID: z.string().optional(),
+  UNIPILE_ENABLED:    z.string().optional().transform((v) => v === 'true'),
+
   // OpenAI
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),

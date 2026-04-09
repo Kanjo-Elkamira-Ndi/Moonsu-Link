@@ -9,6 +9,7 @@ async function main() {
   app.listen(env.PORT, () => {
     console.log(`🚀 MoonsuLink API running on port ${env.PORT} [${env.NODE_ENV}]`);
     console.log(`   OpenAI: ${env.OPENAI_ENABLED ? '✅ enabled' : '⚪ disabled'}`);
+    console.log(`   WhatsApp: ${env.UNIPILE_ENABLED ? '✅ enabled via Unipile' : '⚪ disabled'}`);
   });
 }
 

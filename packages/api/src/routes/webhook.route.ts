@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { handleTelegramUpdate } from '../channels/telegram.channel';
 import { handleSmsWebhook } from '../channels/sms.channel';
-import { handleWhatsAppVerification, handleWhatsAppWebhook } from '../channels/whatsapp.channel';
+// import { handleWhatsAppVerification, handleWhatsAppWebhook } from '../channels/whatsapp.channel';
+import { handleWhatsAppWebhook } from '../channels/whatsapp.channel';
+
 
 export const webhookRouter = Router();
 
@@ -12,5 +14,8 @@ webhookRouter.post('/telegram', handleTelegramUpdate);
 webhookRouter.post('/sms', handleSmsWebhook);
 
 // WhatsApp (future)
-webhookRouter.get('/whatsapp', handleWhatsAppVerification);
+// webhookRouter.get('/whatsapp', handleWhatsAppVerification);
+// webhookRouter.post('/whatsapp', handleWhatsAppWebhook);
+
+// WhatsApp via Unipile
 webhookRouter.post('/whatsapp', handleWhatsAppWebhook);

@@ -13,6 +13,7 @@ export interface IncomingMessage {
   text: string;
   name?: string;
   raw: unknown;
+  meta?: Record<string, any>;
 }
 
 /**
@@ -26,7 +27,7 @@ export async function messageRouter(msg: IncomingMessage): Promise<void> {
   try {
     const { user, lang } = await upsertUser(msg);
     const reply = await commandHandler(msg.text, user.id, lang);
-    await send(msg.channel, msg.from, reply);
+    await send(msg.channel, msg.from, reply, msg.meta);
   } catch (err) {
     console.error('[MessageRouter] Error:', err);
     // Best-effort error reply
@@ -59,13 +60,10 @@ export function detectLang(text: string): Lang {
   return fr.test(text.trim()) ? 'fr' : 'en';
 }
 
-async function send(channel: Channel, to: string, text: string): Promise<void> {
+async function send(channel: Channel, to: string, text: string, meta?: Record<string, any>): Promise<void> {
   switch (channel) {
-    case 'telegram':
-      return sendTelegram(to, text);
-    case 'sms':
-      return sendSms(to, text);
-    case 'whatsapp':
-      return sendWhatsApp(to, text);
+    case 'telegram':  return sendTelegram(to, text);
+    case 'sms':       return sendSms(to, text);
+    case 'whatsapp':  return sendWhatsApp(to, text, meta);
   }
 }
