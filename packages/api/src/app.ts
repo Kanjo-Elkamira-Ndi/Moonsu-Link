@@ -7,6 +7,8 @@ import { requestLogger, errorHandler } from './middleware';
 export function createApp() {
   const app = express();
 
+    // This tells Express to trust proxy headers from ngrok/reverse proxies
+  app.set('trust proxy', 1);
   // ── Security ──────────────────────────────────────────────
   app.use(helmet());
   app.use(cors({ origin: process.env.ADMIN_ORIGIN ?? '*' }));
