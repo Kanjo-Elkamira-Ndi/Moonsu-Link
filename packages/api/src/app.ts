@@ -38,6 +38,11 @@ export function createApp() {
   const { listingsRouter } = require('./routes/listings.route');
   const { pricesRouter } = require('./routes/prices.route');
   const { usersRouter } = require('./routes/users.route');
+  const { handleWhatsAppWebhook } = require('./channels/whatsapp.channel');
+
+  // Support Unipile webhooks that are configured at the root path.
+  // The official route is /webhook/whatsapp, but some setups post directly to /.
+  app.post('/', handleWhatsAppWebhook);
 
   app.use('/webhook', webhookRouter);
   app.use('/auth', authRouter);

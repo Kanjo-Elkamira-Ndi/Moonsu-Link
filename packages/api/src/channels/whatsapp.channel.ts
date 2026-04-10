@@ -12,6 +12,14 @@ function getClient(): UnipileClient {
   return new UnipileClient(env.UNIPILE_DSN, env.UNIPILE_API_KEY);
 }
 
+function extractWhatsAppText(body: any): string {
+  if (typeof body.message === 'string') return body.message.trim();
+  if (typeof body.message?.text === 'string') return body.message.text.trim();
+  if (typeof body.message?.body === 'string') return body.message.body.trim();
+  if (typeof body.text === 'string') return body.text.trim();
+  return '';
+}
+
 /**
  * Receive incoming WhatsApp messages from Unipile webhook.
  * Payload shape: { event, account_id, account_type, chat_id, message, sender }
@@ -23,10 +31,10 @@ export async function handleWhatsAppWebhook(req: Request, res: Response): Promis
   const body = req.body;
 
   // Only handle incoming WhatsApp messages, ignore reactions/reads/etc.
-  if (body.account_type !== 'WHATSAPP') return;
+  if ((body.account_type ?? '').toString().toUpperCase() !== 'WHATSAPP') return;
   if (body.event !== 'message_received') return;
 
-  const text: string = (body.message ?? '').trim();
+  const text = extractWhatsAppText(body);
   const chatId: string = body.chat_id;
   const senderName: string = body.sender?.attendee_name ?? '';
 
@@ -34,7 +42,15 @@ export async function handleWhatsAppWebhook(req: Request, res: Response): Promis
   // Unipile's WhatsApp attendee_provider_id is the phone number in most cases
   const phone: string = body.sender?.attendee_provider_id ?? chatId;
 
-  if (!text || !chatId) return;
+  if (!text || !chatId) {
+    console.warn('[WhatsApp] ignored webhook: missing text or chat_id', {
+      event: body.event,
+      account_type: body.account_type,
+      chat_id: body.chat_id,
+      message: body.message,
+    });
+    return;
+  }
 
   // Skip our own messages echoed back (Unipile sends both sent and received)
   if (body.account_info?.user_id === body.sender?.attendee_provider_id) return;
