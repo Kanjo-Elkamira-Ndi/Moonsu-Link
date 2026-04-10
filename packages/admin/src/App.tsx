@@ -18,10 +18,10 @@ export default function App() {
     <Routes>
       <Route element={<DashboardLayout token={token!} onLogout={logout} />}>
         <Route index element={<Navigate to="/listings" replace />} />
-        <Route path="/listings" element={<ListingsPage token={token!} />} />
-        <Route path="/prices"   element={<PricesPage   token={token!} />} />
-        <Route path="/users"    element={<UsersPage     token={token!} />} />
-        <Route path="/alerts"   element={<AlertsPage   token={token!} />} />
+        <Route path="/listings" element={<ListingsPage  />} />
+        <Route path="/prices"   element={<PricesPage   />} />
+        <Route path="/users"    element={<UsersPage      />} />
+        <Route path="/alerts"   element={<AlertsPage    />} />
       </Route>
     </Routes>
   );

@@ -14,19 +14,19 @@ interface Listing {
   expires_at: string;
 }
 
-interface Props { token: string }
 
-export function ListingsPage({ token }: Props) {
+
+export function ListingsPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    api.getListings(token)
+    api.getListings()
       .then(setListings)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token]);
+  }, []);
 
   const filtered = listings.filter(
     (l) =>

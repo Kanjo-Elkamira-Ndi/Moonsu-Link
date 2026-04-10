@@ -11,11 +11,11 @@ interface Price {
   recorded_at: string;
 }
 
-interface Props { token: string }
+
 
 const BLANK = { crop: '', market: '', region: '', min_price: '', max_price: '' };
 
-export function PricesPage({ token }: Props) {
+export function PricesPage() {
   const [prices, setPrices] = useState<Price[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(BLANK);
@@ -23,16 +23,19 @@ export function PricesPage({ token }: Props) {
   const [saved, setSaved] = useState(false);
 
   const reload = () =>
-    api.getPrices(token).then(setPrices).catch(console.error).finally(() => setLoading(false));
+    api.getCropPrices()
+        .then(setPrices)
+        .catch(console.error)
+        .finally(() => setLoading(false));
 
-  useEffect(() => { reload(); }, [token]);
+  useEffect(() => { reload(); }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.crop || !form.market || !form.min_price || !form.max_price) return;
     setSaving(true);
     try {
-      await api.upsertPrice(token, {
+      await api.upsertCropPrice( {
         crop: form.crop.toLowerCase(),
         market: form.market,
         region: form.region || undefined,

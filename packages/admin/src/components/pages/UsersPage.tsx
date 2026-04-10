@@ -11,15 +11,25 @@ interface User {
   created_at: string;
 }
 
-interface Props { token: string }
 
-export function UsersPage({ token }: Props) {
+
+export function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getUsers(token).then(setUsers).catch(console.error).finally(() => setLoading(false));
-  }, [token]);
+  setLoading(true);
+
+  api.getUsers()
+    .then((data) => {
+      setUsers(data);
+    })
+    .catch((err) => {
+      console.error("Error fetching users:", err);
+    })
+    .finally(() => setLoading(false));
+
+}, []);  
 
   const channelBadge: Record<string, string> = {
     telegram: 'bg-blue-100 text-blue-700',
