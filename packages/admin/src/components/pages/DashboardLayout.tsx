@@ -91,10 +91,10 @@ export function DashboardLayout({ token, onLogout }: Props) {
     setStatsLoading(true);
     try {
       const [listings, prices, users, alerts] = await Promise.all([
-        api.getListings(token),
-        api.getPrices(token),
-        api.getUsers(token),
-        api.getAlerts(token).catch(() => []),
+        api.getListings(),
+        api.getCropPrices(),
+        api.getUsers(),
+        api.getAlerts().catch(() => []),
       ]);
 
       const now = Date.now();
