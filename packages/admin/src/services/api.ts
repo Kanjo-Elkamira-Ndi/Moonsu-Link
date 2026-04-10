@@ -18,10 +18,10 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 }
 
 export const api = {
-  login: (password: string) =>
+  login: (name: string, email: string) =>
     request<{ token: string }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ name, email }),
     }),
 
   getListings: (token: string) =>

@@ -8,11 +8,11 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const login = useCallback(async (password: string) => {
+  const login = useCallback(async (name: string, email: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.login(password);
+      const data = await api.login(name, email);
       localStorage.setItem(TOKEN_KEY, data.token);
       setToken(data.token);
     } catch (err: any) {
