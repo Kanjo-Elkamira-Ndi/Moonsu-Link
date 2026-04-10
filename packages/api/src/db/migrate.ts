@@ -7,6 +7,7 @@ const migrations: Array<{ name: string; sql: string }> = [
       CREATE TABLE IF NOT EXISTS users (
         id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         phone       VARCHAR(20) UNIQUE NOT NULL,
+        email       VARCHAR(150) UNIQUE,
         name        VARCHAR(100),
         channel     VARCHAR(20) NOT NULL DEFAULT 'sms',
         lang        VARCHAR(5)  NOT NULL DEFAULT 'en',
@@ -33,9 +34,20 @@ const migrations: Array<{ name: string; sql: string }> = [
         ADD COLUMN IF NOT EXISTS telegram_id VARCHAR(100),
         ADD COLUMN IF NOT EXISTS telegram_phone VARCHAR(20),
         ADD COLUMN IF NOT EXISTS whatsapp_phone VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS email VARCHAR(150) UNIQUE,
         ADD COLUMN IF NOT EXISTS id_pic_url TEXT,
         ADD COLUMN IF NOT EXISTS selfie_pic_url TEXT,
         ADD COLUMN IF NOT EXISTS selfie_with_id_pic_url TEXT;
+    `,
+  },
+  {
+    name: 'seed admin user',
+    sql: `
+      INSERT INTO users (phone, email, name, role, lang, verified)
+      SELECT 'admin-login', 'moonsulink@admin.com', 'The Alchemist', 'admin', 'en', TRUE
+      WHERE NOT EXISTS (
+        SELECT 1 FROM users WHERE name = 'The Alchemist' AND email = 'moonsulink@admin.com' AND role = 'admin'
+      );
     `,
   },
   {

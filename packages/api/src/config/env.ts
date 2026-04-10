@@ -12,7 +12,6 @@ const envSchema = z.object({
   API_SECRET: z.string().min(32, 'API_SECRET must be at least 32 characters'),
 
   // Admin
-  ADMIN_PASSWORD: z.string().min(8, 'ADMIN_PASSWORD must be at least 8 characters'),
   ADMIN_JWT_SECRET: z.string().min(32, 'ADMIN_JWT_SECRET must be at least 32 characters'),
   ADMIN_JWT_EXPIRES_IN: z.string().default('7d'),
 
@@ -28,12 +27,6 @@ const envSchema = z.object({
   WHATSAPP_TOKEN: z.string().optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   WHATSAPP_VERIFY_TOKEN: z.string().optional(),
-
-  // Unipile / WhatsApp
-  UNIPILE_DSN:        z.string().optional(),
-  UNIPILE_API_KEY:    z.string().optional(),
-  UNIPILE_ACCOUNT_ID: z.string().optional(),
-  UNIPILE_ENABLED:    z.string().optional().transform((v) => v === 'true'),
 
   // OpenAI
   OPENAI_API_KEY: z.string().optional(),

@@ -1,13 +1,14 @@
 import { useState } from 'react';
 
 interface Props {
-  onLogin: (password: string) => void;
+  onLogin: (name: string, email: string) => void;
   error: string | null;
   loading: boolean;
 }
 
 export function LoginPage({ onLogin, error, loading }: Props) {
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -21,19 +22,30 @@ export function LoginPage({ onLogin, error, loading }: Props) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onLogin(password);
+            onLogin(name.trim(), email.trim());
           }}
           className="space-y-4"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="Enter Username"
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-              placeholder="Admin password"
-              autoFocus
+              placeholder="Enter Password"
             />
           </div>
 
@@ -43,7 +55,7 @@ export function LoginPage({ onLogin, error, loading }: Props) {
 
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !name.trim() || !email.trim()}
             className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
             {loading ? 'Signing in...' : 'Sign in'}
