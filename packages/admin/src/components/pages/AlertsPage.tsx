@@ -42,9 +42,8 @@ const ALERT_TYPES = [
   'Other',
 ];
 
-interface Props { token: string; }
 
-export function AlertsPage({ token }: Props) {
+export function AlertsPage() {
   const [alerts, setAlerts]     = useState<PlatformAlert[]>([]);
   const [loading, setLoading]   = useState(true);
   const [publishing, setPublishing] = useState<string | null>(null);
@@ -65,7 +64,7 @@ export function AlertsPage({ token }: Props) {
   async function load() {
     setLoading(true);
     try {
-      const data = await api.getAlerts(token);
+      const data = await api.getAlerts();
       setAlerts(data);
     } catch {
       // API not yet wired — show empty state gracefully
@@ -75,12 +74,12 @@ export function AlertsPage({ token }: Props) {
     }
   }
 
-  useEffect(() => { load(); }, [token]);
+  useEffect(() => { load(); }, []);
 
   async function handlePublish(id: string) {
     setPublishing(id);
     try {
-      await api.publishAlert(token, id);
+      await api.publishAlert(id);
       setAlerts(prev => prev.map(a =>
         a.id === id ? { ...a, status: 'published', published_at: new Date().toISOString() } : a
       ));
@@ -93,7 +92,7 @@ export function AlertsPage({ token }: Props) {
 
   async function handleDismiss(id: string) {
     try {
-      await api.dismissAlert(token, id);
+      await api.dismissAlert(id);
       setAlerts(prev => prev.map(a =>
         a.id === id ? { ...a, status: 'dismissed' } : a
       ));
@@ -108,7 +107,7 @@ export function AlertsPage({ token }: Props) {
     setSaving(true);
     setSaveMsg('');
     try {
-      const created = await api.createAlert(token, {
+      const created = await api.createAlert( {
         title: form.title.trim(),
         message: form.message.trim(),
         severity: form.severity,

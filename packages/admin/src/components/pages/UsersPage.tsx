@@ -13,15 +13,25 @@ interface User {
   whatsappPhone?: string | null;
 }
 
-interface Props { token: string }
 
-export function UsersPage({ token }: Props) {
+
+export function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getUsers(token).then(setUsers).catch(console.error).finally(() => setLoading(false));
-  }, [token]);
+  setLoading(true);
+
+  api.getUsers()
+    .then((data) => {
+      setUsers(data);
+    })
+    .catch((err) => {
+      console.error("Error fetching users:", err);
+    })
+    .finally(() => setLoading(false));
+
+}, []);  
 
   return (
     <div className="p-4 sm:p-6">

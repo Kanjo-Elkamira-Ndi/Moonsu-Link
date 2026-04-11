@@ -16,7 +16,7 @@ interface Crop {
   name: string;
 }
 
-interface Props { token: string }
+
 
 const REGIONS = [
   'Adamaoua',
@@ -34,7 +34,7 @@ const REGIONS = [
 
 const BLANK = { crop: '', region: 'General', min_price: '', max_price: '' };
 
-export function PricesPage({ token }: Props) {
+export function PricesPage() {
   const [prices, setPrices] = useState<Price[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,8 +58,13 @@ export function PricesPage({ token }: Props) {
       setLoading(false);
     }
   };
+  const reload = () =>
+    api.getCropPrices()
+        .then(setPrices)
+        .catch(console.error)
+        .finally(() => setLoading(false));
 
-  useEffect(() => { reload(); }, [token]);
+  useEffect(() => { reload(); }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +88,13 @@ export function PricesPage({ token }: Props) {
         });
       }
 
+      await api.upsertCropPrice( {
+        crop: form.crop.toLowerCase(),
+        market: form.market,
+        region: form.region || undefined,
+        min_price: Number(form.min_price),
+        max_price: Number(form.max_price),
+      });
       setSaved(true);
       setForm(BLANK);
       setEditingId(null);
