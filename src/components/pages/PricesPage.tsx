@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import {useEffect, useState } from 'react';
 import { api } from '../../services/api';
 
 interface Price {
