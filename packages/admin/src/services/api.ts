@@ -28,13 +28,26 @@ export const api = {
     request<any[]>('/listings', {}, token),
 
   getPrices: (token: string) =>
-    request<any[]>('/prices', {}, token),
+    request<any[]>('/crop_prices', {}, token),
 
-  upsertPrice: (
+  createPrice: (
     token: string,
-    data: { crop: string; market: string; region?: string; min_price: number; max_price: number },
+    data: { crop: string; region: string; min_price: number; max_price: number },
   ) =>
-    request<{ ok: boolean }>('/prices', { method: 'POST', body: JSON.stringify(data) }, token),
+    request<any>('/crop_prices', { method: 'POST', body: JSON.stringify(data) }, token),
+
+  updatePrice: (
+    token: string,
+    id: number,
+    data: { crop?: string; region?: string; min_price?: number; max_price?: number },
+  ) =>
+    request<any>(`/crop_prices/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
+
+  deletePrice: (token: string, id: number) =>
+    request<{ message: string }>(`/crop_prices/${id}`, { method: 'DELETE' }, token),
+
+  getCrops: (token: string) =>
+    request<any[]>('/crops', {}, token),
 
   getUsers: (token: string) =>
     request<any[]>('/users', {}, token),

@@ -29,6 +29,19 @@ export const getCrops = async (): Promise<Crop[]> => {
     }
 };
 
+export const getCropByName = async (name: string): Promise<Crop | null> => {
+    try {
+        const result = await pool.query(
+            `SELECT * FROM crops WHERE LOWER(name) = LOWER($1)`,
+            [name.trim()]
+        );
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error(error);
+        throw new AppError("Failed to retrieve crop", 500);
+    }
+};
+
 export const getCropById = async (id: string): Promise<Crop | null> => {
     try {
         const result = await pool.query(`SELECT * FROM crops WHERE id = $1`, [id]);

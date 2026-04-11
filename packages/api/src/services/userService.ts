@@ -143,5 +143,26 @@ export const linkUserAccount = async (
         throw error;
     }
 };
+
+import { t } from '../config/templates';
+import type { Lang } from '../config/templates';
+import { createAlert } from './alertService';
+
+export const setAlert = async ({ userId, crop, region, lang }: { userId: string; crop: string; region: string; lang: Lang }): Promise<string> => {
+    try {
+        const notice = `Price alert: ${crop} in ${region}`;
+        await createAlert({
+            user_id: userId,
+            notice,
+            advice: `We'll notify you when prices change for ${crop} in ${region}.`,
+        });
+        return t(lang, 'alert_set', { crop, region });
+    } catch (error) {
+        console.error('Error setting alert:', error);
+        return t(lang, 'error_generic');
+    }
+};
+
+export const usersService = { setAlert };
 		
 
