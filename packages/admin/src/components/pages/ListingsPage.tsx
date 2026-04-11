@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 
 interface Listing {
-  id: string;
-  crop: string;
+  id: number;
   quantity_kg: number;
+  price: number;
   town: string;
-  price_fcfa: number;
-  status: string;
-  farmer_phone: string;
-  farmer_name: string | null;
+  image_url?: string;
   created_at: string;
   expires_at: string;
+  updated_at: string;
+  user_name: string;
+  crop_name: string;
 }
 
 interface Props { token: string }
@@ -19,19 +19,23 @@ interface Props { token: string }
 export function ListingsPage({ token }: Props) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
     api.getListings(token)
       .then(setListings)
-      .catch(console.error)
+      .catch((err) => {
+        console.error('Failed to load listings:', err);
+        setError('Failed to load listings. Please check your connection and try again.');
+      })
       .finally(() => setLoading(false));
   }, [token]);
 
   const filtered = listings.filter(
     (l) =>
       !filter ||
-      l.crop.toLowerCase().includes(filter.toLowerCase()) ||
+      l.crop_name.toLowerCase().includes(filter.toLowerCase()) ||
       l.town.toLowerCase().includes(filter.toLowerCase()),
   );
 
@@ -53,6 +57,26 @@ export function ListingsPage({ token }: Props) {
 
       {loading ? (
         <p className="text-sm text-gray-400">Loading...</p>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-600">{error}</p>
+          <button
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              api.getListings(token)
+                .then(setListings)
+                .catch((err) => {
+                  console.error('Failed to load listings:', err);
+                  setError('Failed to load listings. Please check your connection and try again.');
+                })
+                .finally(() => setLoading(false));
+            }}
+            className="mt-2 text-sm text-red-700 hover:text-red-800 font-medium"
+          >
+            Try again
+          </button>
+        </div>
       ) : (
         <div className="border border-gray-200 rounded-xl overflow-x-auto">
           <table className="w-full text-xs sm:text-sm whitespace-nowrap">
@@ -60,32 +84,30 @@ export function ListingsPage({ token }: Props) {
               <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 uppercase tracking-wide">
                 <th className="text-left px-3 sm:px-4 py-3">ID</th>
                 <th className="text-left px-3 sm:px-4 py-3">Crop</th>
-                <th className="text-left px-3 sm:px-4 py-3">Qty</th>
+                <th className="text-left px-3 sm:px-4 py-3">Qty (kg)</th>
                 <th className="text-left px-3 sm:px-4 py-3">Town</th>
-                <th className="text-left px-3 sm:px-4 py-3">Price</th>
+                <th className="text-left px-3 sm:px-4 py-3">Price (FCFA)</th>
                 <th className="text-left px-3 sm:px-4 py-3">Farmer</th>
-                <th className="text-left px-3 sm:px-4 py-3">Status</th>
+                <th className="text-left px-3 sm:px-4 py-3">Expires</th>
                 <th className="text-left px-3 sm:px-4 py-3">Posted</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map((l) => (
                 <tr key={l.id} className="hover:bg-gray-50">
-                  <td className="px-3 sm:px-4 py-3 font-mono text-xs text-gray-500">{l.id.slice(0, 8)}</td>
-                  <td className="px-3 sm:px-4 py-3 font-medium capitalize">{l.crop}</td>
+                  <td className="px-3 sm:px-4 py-3 font-mono text-xs text-gray-500">{l.id}</td>
+                  <td className="px-3 sm:px-4 py-3 font-medium capitalize">{l.crop_name}</td>
                   <td className="px-3 sm:px-4 py-3 text-gray-600">{l.quantity_kg}</td>
                   <td className="px-3 sm:px-4 py-3 text-gray-600">{l.town}</td>
-                  <td className="px-3 sm:px-4 py-3 text-gray-600">{l.price_fcfa}</td>
-                  <td className="px-3 sm:px-4 py-3 text-gray-600">{l.farmer_name ?? l.farmer_phone}</td>
-                  <td className="px-3 sm:px-4 py-3">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        l.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {l.status}
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{l.price.toLocaleString()}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{l.user_name ?? 'Unknown'}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      new Date(l.expires_at) > new Date() 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {new Date(l.expires_at) > new Date() ? 'Active' : 'Expired'}
                     </span>
                   </td>
                   <td className="px-3 sm:px-4 py-3 text-gray-400 text-xs">

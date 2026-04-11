@@ -100,10 +100,13 @@ export function DashboardLayout({ token, onLogout }: Props) {
       const now = Date.now();
       const expiredListings = listings.filter((listing) => {
         const expiresAt = new Date(listing.expires_at).getTime();
-        return !listing.status || expiresAt < now;
+        return expiresAt < now;
       }).length;
 
-      const activeListings = listings.filter((listing) => listing.status === 'active').length;
+      const activeListings = listings.filter((listing) => {
+        const expiresAt = new Date(listing.expires_at).getTime();
+        return expiresAt >= now;
+      }).length;
 
       setPendingAlertsCount((alerts as any[]).filter((a: any) => a.status === 'pending').length);
 

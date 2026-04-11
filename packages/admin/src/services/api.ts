@@ -27,8 +27,8 @@ export const api = {
       body: JSON.stringify({ name, email }),
     }),
 
-  getListings: () =>
-    request<any[]>('/listings'),
+  getListings: (token: string) =>
+    request<any[]>('/listings', {}, token),
 
   getPrices: (token: string) =>
     request<any[]>('/crop_prices', {}, token),
