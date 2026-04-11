@@ -5,7 +5,7 @@ import * as notificationService from "./notificationService";
 
 export const createAlert = async (data: Partial<Alert>): Promise<Alert> => {
     try {
-        const { user_id, title, message, severity = 'warning', region, submitted_by = 'User' } = data;
+        const { user_id, title, message, advice, severity = 'warning', region, submitted_by = 'User' } = data;
 
         if (!title || !message) {
             throw new AppError("title and message are required", 400);
@@ -13,11 +13,11 @@ export const createAlert = async (data: Partial<Alert>): Promise<Alert> => {
 
         const result = await pool.query(
             `
-            INSERT INTO alerts (user_id, title, message, severity, region, submitted_by)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO alerts (user_id, title, message, advice, severity, region, submitted_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
             `,
-            [user_id, title, message, severity, region, submitted_by]
+            [user_id, title, message, advice, severity, region, submitted_by]
         );
 
         return result.rows[0];
@@ -145,20 +145,21 @@ export const dismissAlert = async (id: number): Promise<Alert> => {
 
 export const updateAlert = async (id: number, data: Partial<Alert>): Promise<Alert> => {
     try {
-        const { title, message, severity, region } = data;
+        const { title, message, advice, severity, region } = data;
 
         const result = await pool.query(
             `
             UPDATE alerts
             SET title = COALESCE($1, title),
                 message = COALESCE($2, message),
-                severity = COALESCE($3, severity),
-                region = COALESCE($4, region),
+                advice = COALESCE($3, advice),
+                severity = COALESCE($4, severity),
+                region = COALESCE($5, region),
                 updated_at = NOW()
-            WHERE id = $5
+            WHERE id = $6
             RETURNING *;
             `,
-            [title, message, severity, region, id]
+            [title, message, advice, severity, region, id]
         );
 
         if (result.rowCount === 0) {
@@ -181,7 +182,7 @@ export const deleteAlert = async (id: number): Promise<boolean> => {
             [id]
         );
 
-        return result.rowCount > 0;
+        return (result.rowCount ?? 0) > 0;
 
     } catch (error) {
         console.error(error);

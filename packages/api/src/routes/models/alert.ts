@@ -3,6 +3,7 @@ export interface Alert {
     user_id?: string;
     title: string;
     message: string;
+    advice?: string;
     severity: 'info' | 'warning' | 'critical';
     region?: string;
     status: 'pending' | 'published' | 'dismissed';

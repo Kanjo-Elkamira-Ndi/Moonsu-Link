@@ -162,11 +162,7 @@ export function DashboardLayout({ token, onLogout }: Props) {
       <div className="sticky top-0 z-40 bg-white border-b border-slate-200 lg:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z" />
-              </svg>
-            </span>
+            <img src="/src/assets/moonsuLinkLogo.jpg" alt="MoonsuLink Logo" className="h-8 w-8 rounded-lg" />
             <span className="text-sm font-semibold text-slate-900">MoonsuLink</span>
           </div>
           <button
@@ -229,19 +225,7 @@ export function DashboardLayout({ token, onLogout }: Props) {
       <aside className="hidden lg:flex w-72 shrink-0 bg-white border-r border-slate-200 shadow-[0_0_45px_rgba(15,23,42,0.06)] flex-col sticky top-0 h-screen">
         <div className="px-6 py-7 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 shadow-sm">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5"
-              >
-                <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z" />
-              </svg>
-            </span>
+            <img src="/src/assets/moonsuLinkLogo.jpg" alt="MoonsuLink Logo" className="h-11 w-11 rounded-2xl shadow-sm" />
             <div>
               <p className="text-lg font-semibold text-slate-900">MoonsuLink</p>
               <p className="text-sm text-slate-500 mt-0.5">Admin dashboard</p>

@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
@@ -5,6 +7,7 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
@@ -24,8 +27,8 @@ export const api = {
       body: JSON.stringify({ name, email }),
     }),
 
-  getListings: (token: string) =>
-    request<any[]>('/listings', {}, token),
+  getListings: () =>
+    request<any[]>('/listings'),
 
   getPrices: (token: string) =>
     request<any[]>('/crop_prices', {}, token),
@@ -48,9 +51,25 @@ export const api = {
 
   getCrops: (token: string) =>
     request<any[]>('/crops', {}, token),
+  getCrops: () =>
+    request<any[]>('/crops'),
 
-  getUsers: (token: string) =>
-    request<any[]>('/users', {}, token),
+  getCropPrices: () =>
+    request<any[]>('/crop_prices'),
+
+  upsertCropPrice: (data: {
+    crop: string;
+    market: string;
+    region?: string;
+    min_price: number;
+    max_price: number;
+  }) =>
+    request<{ ok: boolean }>('/crop_prices', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getUsers: () =>
+    request<any[]>('/users'),
 
   // ── Alerts ────────────────────────────────────────────────────────────────
   getAlerts: (token: string) =>
@@ -58,7 +77,7 @@ export const api = {
 
   createAlert: (
     token: string,
-    data: { title: string; message: string; severity: string; region?: string; submitted_by?: string },
+    data: { title: string; message: string; advice?: string; severity: string; region?: string; submitted_by?: string },
   ) =>
     request<any>('/alerts', { method: 'POST', body: JSON.stringify(data) }, token),
 
@@ -71,7 +90,7 @@ export const api = {
   updateAlert: (
     token: string,
     id: number,
-    data: { title?: string; message?: string; severity?: string; region?: string },
+    data: { title?: string; message?: string; advice?: string; severity?: string; region?: string },
   ) =>
     request<any>(`/alerts/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
 

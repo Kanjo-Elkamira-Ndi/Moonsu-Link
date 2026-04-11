@@ -11,6 +11,7 @@ export interface PlatformAlert {
   id: number;
   title: string;
   message: string;
+  advice?: string;
   severity: AlertSeverity;
   status: AlertStatus;
   submitted_by?: string;
@@ -47,14 +48,15 @@ interface Props { token: string; }
 export function AlertsPage({ token }: Props) {
   const [alerts, setAlerts]     = useState<PlatformAlert[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [publishing, setPublishing] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter]     = useState<'all' | AlertStatus>('all');
 
-  // New alert form state
+  // New alert form state.
   const [form, setForm] = useState({
     title: '',
     message: '',
+    advice: '',
     severity: 'warning' as AlertSeverity,
     region: '',
     submitted_by: 'Admin',
@@ -68,7 +70,7 @@ export function AlertsPage({ token }: Props) {
       const data = await api.getAlerts(token);
       setAlerts(data);
     } catch {
-      // API not yet wired — show empty state gracefully
+      // API not yet wired — will show empty state gracefully
       setAlerts([]);
     } finally {
       setLoading(false);
@@ -77,7 +79,7 @@ export function AlertsPage({ token }: Props) {
 
   useEffect(() => { load(); }, [token]);
 
-  async function handlePublish(id: string) {
+  async function handlePublish(id: number) {
     setPublishing(id);
     try {
       await api.publishAlert(token, id);
@@ -91,7 +93,7 @@ export function AlertsPage({ token }: Props) {
     }
   }
 
-  async function handleDismiss(id: string) {
+  async function handleDismiss(id: number) {
     try {
       await api.dismissAlert(token, id);
       setAlerts(prev => prev.map(a =>
@@ -111,12 +113,13 @@ export function AlertsPage({ token }: Props) {
       const created = await api.createAlert(token, {
         title: form.title.trim(),
         message: form.message.trim(),
+        advice: form.advice.trim() || undefined,
         severity: form.severity,
         region: form.region.trim() || undefined,
         submitted_by: form.submitted_by.trim() || 'Admin',
       });
       setAlerts(prev => [created, ...prev]);
-      setForm({ title: '', message: '', severity: 'warning', region: '', submitted_by: 'Admin' });
+      setForm({ title: '', message: '', advice: '', severity: 'warning', region: '', submitted_by: 'Admin' });
       setShowForm(false);
       setSaveMsg('Alert created.');
     } catch (e: any) {
@@ -198,6 +201,17 @@ export function AlertsPage({ token }: Props) {
                 value={form.message}
                 onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                 placeholder="Describe the alert clearly in plain language. This will be sent to all users via Telegram and SMS."
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-brand-400"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-slate-600 mb-1">Advice or Recommendation (optional)</label>
+              <textarea
+                rows={2}
+                value={form.advice}
+                onChange={e => setForm(f => ({ ...f, advice: e.target.value }))}
+                placeholder="Provide advice or recommendations for users on how to respond to this alert."
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-brand-400"
               />
             </div>
@@ -314,6 +328,12 @@ export function AlertsPage({ token }: Props) {
                       )}
                     </div>
                     <p className="text-sm text-slate-700 leading-relaxed">{alert.message}</p>
+                    {alert.advice && (
+                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm font-medium text-blue-800 mb-1">💡 Recommendation</p>
+                        <p className="text-sm text-blue-700 leading-relaxed">{alert.advice}</p>
+                      </div>
+                    )}
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
                       {alert.submitted_by && <span>Submitted by: {alert.submitted_by}</span>}
                       <span>Created: {new Date(alert.created_at).toLocaleString()}</span>

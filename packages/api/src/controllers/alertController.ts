@@ -4,7 +4,7 @@ import * as alertService from "../services/alertService";
 
 export const createAlert = async (req: Request, res: Response) => {
     try {
-        const { user_id, title, message, severity = 'warning', region, submitted_by = 'Admin' } = req.body;
+        const { user_id, title, message, advice, severity = 'warning', region, submitted_by = 'Admin' } = req.body;
 
         if (!title || !message) {
             throw new AppError("Missing required fields: title, message", 400);
@@ -14,6 +14,7 @@ export const createAlert = async (req: Request, res: Response) => {
             user_id,
             title,
             message,
+            advice,
             severity,
             region,
             submitted_by
@@ -95,8 +96,8 @@ export const dismissAlert = async (req: Request, res: Response) => {
 export const updateAlert = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { title, message, severity, region } = req.body;
-        const alert = await alertService.updateAlert(Number(id), { title, message, severity, region });
+        const { title, message, advice, severity, region } = req.body;
+        const alert = await alertService.updateAlert(Number(id), { title, message, advice, severity, region });
         return res.json(alert);
     } catch (error) {
         if (error instanceof AppError) {

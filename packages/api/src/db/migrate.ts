@@ -176,6 +176,12 @@ const migrations: Array<{ name: string; sql: string }> = [
     `,
   },
   {
+    name: 'add advice field to alerts table',
+    sql: `
+      ALTER TABLE alerts ADD COLUMN IF NOT EXISTS advice TEXT;
+    `,
+  },
+  {
     name: 'create processed_messages',
     sql: `
       CREATE TABLE processed_messages (

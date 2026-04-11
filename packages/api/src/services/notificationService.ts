@@ -24,12 +24,13 @@ function getAlertMessage(alert: Alert, lang: string) {
   };
 
   const region = alert.region ? ` (${alert.region})` : '';
+  const advice = alert.advice ? `\n\n*Recommendation:* ${alert.advice}` : '';
 
   if (lang === 'fr') {
-    return `${severityEmoji[alert.severity]} *ALERTE ${alert.severity.toUpperCase()}*${region}\n\n${alert.title}\n\n${alert.message}`;
+    return `${severityEmoji[alert.severity]} *ALERTE ${alert.severity.toUpperCase()}*${region}\n\n${alert.title}\n\n${alert.message}${advice}`;
   }
 
-  return `${severityEmoji[alert.severity]} *${alert.severity.toUpperCase()} ALERT*${region}\n\n${alert.title}\n\n${alert.message}`;
+  return `${severityEmoji[alert.severity]} *${alert.severity.toUpperCase()} ALERT*${region}\n\n${alert.title}\n\n${alert.message}${advice}`;
 }
 
 export async function broadcastMarketPriceUpdate(price: CropPrice): Promise<void> {
@@ -38,13 +39,13 @@ export async function broadcastMarketPriceUpdate(price: CropPrice): Promise<void
     const message = getMessage(price, user.lang ?? 'en');
 
     try {
-      if (user.telegram_id) {
-        await sendTelegram(user.telegram_id, message);
+      if (user.telegramId) {
+        await sendTelegram(user.telegramId, message);
         return;
       }
 
-      if (user.whatsapp_number) {
-        await sendWhatsApp(user.whatsapp_number, message);
+      if (user.whatsappNumber) {
+        await sendWhatsApp(user.whatsappNumber, message);
         return;
       }
 
@@ -63,13 +64,13 @@ export async function broadcastAlert(alert: Alert): Promise<void> {
     const message = getAlertMessage(alert, user.lang ?? 'en');
 
     try {
-      if (user.telegram_id) {
-        await sendTelegram(user.telegram_id, message);
+      if (user.telegramId) {
+        await sendTelegram(user.telegramId, message);
         return;
       }
 
-      if (user.whatsapp_number) {
-        await sendWhatsApp(user.whatsapp_number, message);
+      if (user.whatsappNumber) {
+        await sendWhatsApp(user.whatsappNumber, message);
         return;
       }
 
