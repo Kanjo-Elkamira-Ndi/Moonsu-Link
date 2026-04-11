@@ -51,8 +51,6 @@ export const api = {
 
   getCrops: (token: string) =>
     request<any[]>('/crops', {}, token),
-  getCrops: () =>
-    request<any[]>('/crops'),
 
   getCropPrices: () =>
     request<any[]>('/crop_prices'),
@@ -68,8 +66,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  getUsers: () =>
-    request<any[]>('/users'),
+  getUsers: (token: string) =>
+    request<any[]>('/users', {}, token),
 
   // ── Alerts ────────────────────────────────────────────────────────────────
   getAlerts: (token: string) =>

@@ -29,14 +29,15 @@ const migrations: Array<{ name: string; sql: string }> = [
         role             VARCHAR(20) NOT NULL CHECK (role IN ('farmer', 'buyer', 'admin')),
         region           VARCHAR(20) NOT NULL DEFAULT 'General' CHECK (
                             region IN (
-                              'Adamaoua', 'Centre', 'Est', 'Extrême-Nord',
-                              'Littoral', 'Nord', 'Nord-Ouest',
-                              'Ouest', 'Sud', 'Sud-Ouest', 'General'
+                              'Adamawa', 'Centre', 'East', 'Far North',
+                              'Littoral', 'North', 'North West',
+                              'West', 'South', 'South West', 'General'
                             )
                          ),
         telegram_id      VARCHAR(100) UNIQUE,
         telegram_number  VARCHAR(20) UNIQUE,
         whatsapp_number  VARCHAR(20) UNIQUE,
+        chat_id          VARCHAR(100) UNIQUE,
         lang             VARCHAR(5) NOT NULL CHECK (lang IN ('en', 'fr')),
         pic_folder       TEXT,
         created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -93,6 +94,13 @@ const migrations: Array<{ name: string; sql: string }> = [
         quantity_kg INTEGER NOT NULL,
         price       INTEGER NOT NULL,
         town        VARCHAR(100) NOT NULL,
+        region      VARCHAR(20) NOT NULL DEFAULT 'General' CHECK (
+                      region IN (
+                        'Adamawa', 'Centre', 'East', 'Far North',
+                        'Littoral', 'North', 'North West',
+                        'West', 'South', 'South West', 'General'
+                      )
+                    ),
         image_url   TEXT,
         expires_at  TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '7 days',
         created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -112,9 +120,9 @@ const migrations: Array<{ name: string; sql: string }> = [
         crop_id    INTEGER REFERENCES crops(id) ON DELETE SET NULL,
         region     VARCHAR(20) NOT NULL DEFAULT 'General' CHECK (
                       region IN (
-                        'Adamaoua', 'Centre', 'Est', 'Extrême-Nord',
-                        'Littoral', 'Nord', 'Nord-Ouest',
-                        'Ouest', 'Sud', 'Sud-Ouest', 'General'
+                        'Adamawa', 'Centre', 'East', 'Far North',
+                        'Littoral', 'North', 'North West',
+                        'West', 'South', 'South West', 'General'
                       )
                    ),
         min_price  INTEGER NOT NULL,
@@ -153,21 +161,14 @@ const migrations: Array<{ name: string; sql: string }> = [
     name: 'create alerts table',
     sql: `
       CREATE TABLE IF NOT EXISTS alerts (
-        id         SERIAL PRIMARY KEY,
-        user_id    UUID REFERENCES users(id) ON DELETE CASCADE,
-        title      VARCHAR(255) NOT NULL,
-        message    TEXT NOT NULL,
-        severity   VARCHAR(20) NOT NULL DEFAULT 'warning' CHECK (
-                      severity IN ('info', 'warning', 'critical')
-                   ),
-        region     VARCHAR(50),
-        status     VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (
-                      status IN ('pending', 'published', 'dismissed')
-                   ),
-        submitted_by VARCHAR(255) DEFAULT 'User',
-        published_at TIMESTAMPTZ,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        id           SERIAL PRIMARY KEY,
+        user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        notice       TEXT NOT NULL,
+        advice       TEXT,
+        verified     BOOLEAN NOT NULL DEFAULT FALSE,
+        broadcasted  BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
       CREATE TRIGGER set_updated_at_alerts
@@ -176,21 +177,32 @@ const migrations: Array<{ name: string; sql: string }> = [
     `,
   },
   {
-    name: 'add advice field to alerts table',
-    sql: `
-      ALTER TABLE alerts ADD COLUMN IF NOT EXISTS advice TEXT;
-    `,
-  },
-  {
     name: 'create processed_messages',
     sql: `
-      CREATE TABLE processed_messages (
+      CREATE TABLE IF NOT EXISTS processed_messages (
         id SERIAL PRIMARY KEY,
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         message_id TEXT UNIQUE NOT NULL,
         chat_id TEXT,
         processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `
+  },
+  {
+    name: 'create message_counters',
+    sql: `
+      CREATE TABLE IF NOT EXISTS message_counters (
+        id SERIAL PRIMARY KEY,
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        counter INTEGER DEFAULT 0,
+        response INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TRIGGER set_updated_at_message_counters
+      BEFORE UPDATE ON message_counters
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `
   }
 ];

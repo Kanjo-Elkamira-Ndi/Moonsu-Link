@@ -4,25 +4,25 @@ const prices = [
   // Maize / Maïs
   { crop: 'maize', region: 'Centre', min: 180, max: 220 },
   { crop: 'maize', region: 'Littoral', min: 190, max: 230 },
-  { crop: 'maize', region: 'Ouest', min: 160, max: 200 },
+  { crop: 'maize', region: 'West', min: 160, max: 200 },
   // Tomato / Tomate
   { crop: 'tomato', region: 'Centre', min: 300, max: 450 },
   { crop: 'tomato', region: 'Littoral', min: 320, max: 480 },
-  { crop: 'tomato', region: 'Ouest', min: 250, max: 380 },
+  { crop: 'tomato', region: 'West', min: 250, max: 380 },
   // Cassava / Manioc
   { crop: 'cassava', region: 'Centre', min: 100, max: 150 },
   { crop: 'cassava', region: 'Littoral', min: 110, max: 160 },
-  { crop: 'cassava', region: 'Sud', min: 80, max: 120 },
+  { crop: 'cassava', region: 'South', min: 80, max: 120 },
   // Beans / Haricots
   { crop: 'beans', region: 'Centre', min: 500, max: 700 },
-  { crop: 'beans', region: 'Ouest', min: 450, max: 620 },
-  { crop: 'beans', region: 'Nord-Ouest', min: 400, max: 580 },
+  { crop: 'beans', region: 'West', min: 450, max: 620 },
+  { crop: 'beans', region: 'North West', min: 400, max: 580 },
   // Plantain
   { crop: 'plantain', region: 'Littoral', min: 200, max: 280 },
   { crop: 'plantain', region: 'Centre', min: 220, max: 300 },
   // Groundnuts / Arachides
-  { crop: 'groundnuts', region: 'Adamaoua', min: 600, max: 900 },
-  { crop: 'groundnuts', region: 'Nord', min: 550, max: 850 },
+  { crop: 'groundnuts', region: 'Adamawa', min: 600, max: 900 },
+  { crop: 'groundnuts', region: 'North', min: 550, max: 850 },
 ];
 
 async function seed(): Promise<void> {
@@ -51,7 +51,8 @@ async function seed(): Promise<void> {
       // Calculate average price
       const avgPrice = Math.floor((p.min + p.max) / 2);
 
-      // Check if this crop_id/region combo already exists
+      // Check if this crop_id/region combo already exists 
+      // (Using ON CONFLICT in the query is also an option, but this manual check works fine)
       const existingResult = await client.query(
         `SELECT id FROM crop_prices WHERE crop_id = $1 AND region = $2`,
         [cropId, p.region],
@@ -64,9 +65,19 @@ async function seed(): Promise<void> {
            VALUES ($1, $2, $3, $4, $5)`,
           [cropId, p.region, p.min, p.max, avgPrice],
         );
+        console.log(`  → Added ${p.crop} in ${p.region}`);
+      } else {
+        // Optional: Update existing prices if they already exist
+        await client.query(
+          `UPDATE crop_prices 
+           SET min_price = $3, max_price = $4, avg_price = $5, updated_at = NOW()
+           WHERE crop_id = $1 AND region = $2`,
+          [cropId, p.region, p.min, p.max, avgPrice],
+        );
+        console.log(`  → Updated ${p.crop} in ${p.region}`);
       }
     }
-    console.log(`✅ Seeded ${prices.length} price records`);
+    console.log(`✅ Seeded/Updated ${prices.length} price records`);
   } catch (err: any) {
     console.error('❌ Seed failed:', err.message);
     throw err;
