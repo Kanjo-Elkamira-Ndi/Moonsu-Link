@@ -11,6 +11,7 @@ import authRouter from './routes/authRoute'
 import alertRouter from './routes/alertRoute'
 import { sanitizeRequest } from './middleware/SanitizeMiddleware'
 import webhookRoute from './routes/webhookRoute'
+import telegramWebhook from './routes/telegramWebhook'
 
 export const createApp = () => {
     const app = express();
@@ -32,6 +33,7 @@ export const createApp = () => {
         res.json({ status: 'ok', ts: new Date().toISOString() });
     });
     app.use('/', webhookRoute);
+    app.use('/webhook', telegramWebhook);
     app.use('/alerts', alertRouter);
     app.use('/users', userRoute);
     app.use('/crops', cropRoute);
