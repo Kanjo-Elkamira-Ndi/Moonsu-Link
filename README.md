@@ -1,34 +1,20 @@
-# 🌱 Moonsu Link
+# MoonsuLink
 
-> Connecting Cameroonian farmers with buyers via Telegram, SMS (MTN/Orange/Camtel), and WhatsApp.
-> Built for FarmerHack 2026 — Rebase Code Camp.
+> Admin dashboard for the MoonsuLink agricultural platform.
+> Built for FarmerHack 2026, organized by Rebase Code Camp, Cameroon.
 
----
+## What is MoonsuLink?
 
-## What it does
+MoonsuLink is a multi-channel messaging platform that connects
+Cameroonian farmers with buyers and aggregators via Telegram,
+SMS, and WhatsApp.
 
-Moonu Link is a multi-channel messaging platform that lets:
-- **Farmers** post their available produce and check real market prices
-- **Buyers/Aggregators** search available produce and subscribe to crop alerts
-- **Admins** update weekly market prices via a web dashboard
+This repository contains the **admin dashboard** — a React web
+application used by platform administrators to manage market
+prices, monitor listings, manage users, and broadcast alerts
+to all platform users.
 
-All interactions happen over **Telegram**, **SMS**, or **WhatsApp** — no app download, no smartphone required beyond basic messaging.
-
----
-
-## Proposed Monorepo Structure
-
-```
-Moonu Link/
-├── packages/
-│   ├── api/          # Node.js + Express backend — handles all bot logic, webhooks, DB
-│   ├── bot/          # Telegram polling process (local dev only)
-│   └── admin/        # React + Vite admin dashboard
-├── docs/             # Architecture notes, API docs
-├── scripts/          # Utility scripts
-├── .env.example      # Copy this to .env and fill in values
-└── package.json      # Workspace root
-```
+The bot logic and API live on the `backend` branch.
 
 ---
 
@@ -36,150 +22,164 @@ Moonu Link/
 
 | Layer | Technology |
 |---|---|
-| Backend | Node.js, Express, TypeScript |
-| Database | PostgreSQL |
-| Bot channels | Telegram Bot API, Twilio SMS, Orange/MTN API (stubs) |
-| Admin frontend | React 18, Vite, Tailwind CSS |
-| Deployment | Railway / Render (API + DB), Vercel (Admin) |
+| Framework | React 18 + TypeScript |
+| Build tool | Vite |
+| Styling | Tailwind CSS |
+| Routing | React Router DOM v6 |
+| HTTP | Native fetch with typed wrapper |
+| Auth | JWT (stored in localStorage) |
+| Deployment | Vercel / Railway |
 
 ---
 
-## Quick Start (Local Development)
+## Features
+
+### Market Prices
+Add and update weekly crop prices per market. Prices are what
+the bot returns to farmers when they send `PRIX maïs` or
+`PRICE maize`. Covers 7 crops across 4 major Cameroonian
+markets (Yaoundé, Douala, Bafoussam, Bafia).
+
+### Listings Management
+View all active, expired, sold, and cancelled farmer produce
+listings. Admins can cancel fraudulent or duplicate listings.
+Listings auto-expire after 7 days.
+
+### Users
+View all registered farmers and buyers. Shows channel
+(Telegram or SMS), preferred language (FR/EN), region,
+and registration date.
+
+### Alerts
+Create and broadcast platform alerts to all users — pest
+outbreaks, sharp price changes, weather warnings, market
+closures, and more. Alerts have three severity levels
+(Info, Warning, Critical) and can be targeted to a specific
+region or sent nationwide. Admins review pending alerts and
+publish or dismiss them. Published alerts are broadcast via
+the bot to all active users.
+
+---
+
+## Project Structure
+
+```
+src/
+├── components/
+│   └── pages/
+│       ├── DashboardLayout.tsx   # Sidebar, header, stats
+│       ├── LoginPage.tsx         # Admin authentication
+│       ├── ListingsPage.tsx      # Farmer listings table
+│       ├── PricesPage.tsx        # Market price management
+│       ├── UsersPage.tsx         # Registered users
+│       └── AlertsPage.tsx        # Alert creation & broadcast
+├── hooks/
+│   └── useAuth.ts                # JWT auth state management
+├── services/
+│   └── api.ts                    # Typed API fetch wrapper
+├── App.tsx                       # Route definitions
+├── main.tsx                      # Entry point
+└── index.css                     # Tailwind directives
+```
+
+---
+
+## Getting Started
 
 ### Prerequisites
 - Node.js >= 18
-- PostgreSQL running locally
-- A Telegram bot token from [@BotFather](https://t.me/BotFather)
+- The backend service running (see `backend` branch)
 
-### 1. Clone and install
+### Installation
 
 ```bash
 git clone https://github.com/Kanjo-Elkamira-Ndi/Moonsu-Link.git
-cd Moonu-Link
+cd Moonsu-Link
+git checkout frontend
 npm install
 ```
 
-### 2. Configure environment
+### Environment variables
 
-```bash
-cp .env.example .env
-# Edit .env with your values — at minimum:
-# DATABASE_URL, TELEGRAM_BOT_TOKEN, API_SECRET, ADMIN_PASSWORD, ADMIN_JWT_SECRET
+Create a `.env` file at the root:
+
+```env
+VITE_API_URL=http://localhost:3005
 ```
 
-### 3. Create and seed the database
+Point `VITE_API_URL` at your running backend instance.
+In production this is your Railway backend URL.
 
-```bash
-# Create a PostgreSQL database named 'Moonu Link', then:
-npm run migrate
-npm run seed
-```
-
-### 4. Start all services
+### Run locally
 
 ```bash
 npm run dev
-# API:   http://localhost:3001
-# Admin: http://localhost:5173
-# Bot:   Telegram polling active (forwards to API)
 ```
 
-### 5. Test the bot
+Opens at `http://localhost:5173`.
 
-Open Telegram, search for your bot by username, and send:
+### Build for production
+
+```bash
+npm run build
 ```
-HELP
+
+Output goes to `dist/`. Preview the production build with:
+
+```bash
+npm run preview
 ```
 
 ---
 
-## Bot Commands
+## Deployment
 
-| English | French | Description |
+The frontend is deployed on **Railway** (or Vercel).
+
+Set the following in your deployment environment:
+
+```
+VITE_API_URL=https://your-backend.railway.app
+```
+
+Build command: `npm install && npm run build`
+Start command: `npm run preview`
+
+> Vite bakes `VITE_API_URL` into the bundle at build time.
+> If you change the variable, you must redeploy.
+
+---
+
+## Related
+
+| | Branch | Description |
 |---|---|---|
-| `SELL maize 80kg Bafia 250` | `VENDRE maïs 80kg Bafia 250` | Post a harvest listing |
-| `FIND maize Bafia` | `CHERCHER maïs Bafia` | Find available produce |
-| `PRICE maize` | `PRIX maïs` | Get today's market prices |
-| `ALERT tomato West` | `ALERTE tomate Ouest` | Subscribe to crop alerts |
-| `INTERESTED abc12345` | `INTERESSE abc12345` | Express interest in a listing |
-| `MY LISTINGS` | `MESLISTES` | View your active listings |
+| Backend | `backend` | Node.js + Express + TypeScript API |
+| Bot | `backend` | Telegram bot + SMS channel handlers |
+| Database | PostgreSQL | Hosted on Railway |
+
+---
+
+## Bot Commands Reference
+
+Farmers and buyers interact with MoonsuLink entirely via chat.
+No app download required.
+
+| English | French | Action |
+|---|---|---|
+| `PRICE maize` | `PRIX maïs` | Get market prices |
+| `SELL maize 80kg Bafia 250` | `VENDRE maïs 80kg Bafia 250` | Post a listing |
+| `FIND maize Bafia` | `CHERCHER maïs Bafia` | Search produce |
+| `ALERT tomato West` | `ALERTE tomate Ouest` | Subscribe to alerts |
+| `INTERESTED abc12345` | `INTERESSE abc12345` | Contact a farmer |
+| `MY LISTINGS` | `MESLISTES` | View active listings |
 | `CANCEL abc12345` | `ANNULER abc12345` | Cancel a listing |
 | `HELP` | `AIDE` | Show all commands |
 
 ---
 
-## Deployment (Production)
+## Team
 
-### API + Database → Railway
-
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
-
-railway login
-railway init
-railway up
-
-# Add environment variables in Railway dashboard
-# Set the Telegram webhook after deploy:
-curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-app.railway.app/webhooks/telegram"
+Built by team **The Alchemist** for FarmerHack 2026
+— Rebase Code Camp, Cameroon.
 ```
-
-### Admin Dashboard → Vercel
-
-```bash
-cd packages/admin
-npx vercel --prod
-# Set VITE_API_URL to your Railway API URL in Vercel dashboard
-```
-
-### SMS via Twilio
-
-1. Create a Twilio account at twilio.com
-2. Get a phone number
-3. In Twilio console, set the SMS webhook URL to: `https://your-api-url/webhooks/sms`
-4. Add `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` to your env
-
----
-
-## Team Task Split
-
-| Task | File(s) | Who |
-|---|---|---|
-| DB schema & migrations | `packages/api/src/db/migrate.ts` | Backend lead |
-| Command handlers | `packages/api/src/services/commandHandler.service.ts` | Backend lead |
-| Message templates | `packages/api/src/config/templates.ts` | Anyone |
-| SMS channel (Twilio) | `packages/api/src/channels/sms.channel.ts` | Backend |
-| Telegram channel | `packages/api/src/channels/telegram.channel.ts` | Backend |
-| Admin dashboard | `packages/admin/src/` | Frontend |
-| Seed data (real prices) | `packages/api/src/db/seeds/index.ts` | Anyone |
-| Deployment | `railway.toml`, Vercel | DevOps |
-
----
-
-## Environment Variables Reference
-
-See `.env.example` for all variables with descriptions.
-
-**Minimum required to run locally:**
-- `DATABASE_URL`
-- `TELEGRAM_BOT_TOKEN`
-- `API_SECRET` (any random 32-char string)
-- `ADMIN_PASSWORD`
-- `ADMIN_JWT_SECRET` (any random 32-char string)
-
----
-
-## Adding WhatsApp (Future)
-
-When Meta Business verification is complete:
-
-1. Add `WHATSAPP_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` to `.env`
-2. Implement the incoming message parser in `packages/api/src/routes/webhook.routes.ts` (the route stub is already there)
-3. The `WhatsAppChannel.send()` in `packages/api/src/channels/whatsapp.channel.ts` is already implemented
-
----
-
-## License
-
-MIT
