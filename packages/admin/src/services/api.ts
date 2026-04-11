@@ -62,9 +62,19 @@ export const api = {
   ) =>
     request<any>('/alerts', { method: 'POST', body: JSON.stringify(data) }, token),
 
-  publishAlert: (token: string, id: string) =>
-    request<{ ok: boolean }>(`/alerts/${id}/publish`, { method: 'PATCH' }, token),
+  publishAlert: (token: string, id: number) =>
+    request<{ ok: boolean }>(`/alerts/${id}/publish`, { method: 'PUT' }, token),
 
-  dismissAlert: (token: string, id: string) =>
-    request<{ ok: boolean }>(`/alerts/${id}/dismiss`, { method: 'PATCH' }, token),
+  dismissAlert: (token: string, id: number) =>
+    request<{ ok: boolean }>(`/alerts/${id}/dismiss`, { method: 'PUT' }, token),
+
+  updateAlert: (
+    token: string,
+    id: number,
+    data: { title?: string; message?: string; severity?: string; region?: string },
+  ) =>
+    request<any>(`/alerts/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
+
+  deleteAlert: (token: string, id: number) =>
+    request<{ message: string }>(`/alerts/${id}`, { method: 'DELETE' }, token),
 };

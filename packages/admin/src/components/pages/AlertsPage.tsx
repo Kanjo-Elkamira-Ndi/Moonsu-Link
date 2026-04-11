@@ -8,7 +8,7 @@ type AlertStatus = 'pending' | 'published' | 'dismissed';
 type SeverityIcon = typeof Info;
 
 export interface PlatformAlert {
-  id: string;
+  id: number;
   title: string;
   message: string;
   severity: AlertSeverity;

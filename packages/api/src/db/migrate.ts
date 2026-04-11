@@ -154,10 +154,18 @@ const migrations: Array<{ name: string; sql: string }> = [
     sql: `
       CREATE TABLE IF NOT EXISTS alerts (
         id         SERIAL PRIMARY KEY,
-        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        notice     TEXT NOT NULL,
-        advice     TEXT,
-        verified   BOOLEAN NOT NULL DEFAULT FALSE,
+        user_id    UUID REFERENCES users(id) ON DELETE CASCADE,
+        title      VARCHAR(255) NOT NULL,
+        message    TEXT NOT NULL,
+        severity   VARCHAR(20) NOT NULL DEFAULT 'warning' CHECK (
+                      severity IN ('info', 'warning', 'critical')
+                   ),
+        region     VARCHAR(50),
+        status     VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (
+                      status IN ('pending', 'published', 'dismissed')
+                   ),
+        submitted_by VARCHAR(255) DEFAULT 'User',
+        published_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );

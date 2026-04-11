@@ -1,9 +1,13 @@
 export interface Alert {
     id: number;
-    user_id: string;
-    notice: string;
-    advice?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    verified?: boolean;
+    user_id?: string;
+    title: string;
+    message: string;
+    severity: 'info' | 'warning' | 'critical';
+    region?: string;
+    status: 'pending' | 'published' | 'dismissed';
+    submitted_by?: string;
+    published_at?: Date;
+    created_at?: Date;
+    updated_at?: Date;
 }

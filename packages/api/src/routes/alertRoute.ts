@@ -8,7 +8,9 @@ router.post("/", authorize("All"), alertController.createAlert);
 router.get("/", authorize("All"), alertController.getAlerts);
 router.get("/:id", authorize("All"), alertController.getAlertById);
 router.get("/user/:user_id", authorize("All"), alertController.getAlertsByUser);
-router.put("/:id/verify", authorize("admin"), alertController.verifyAlert);
-router.put('/:id', authorize("admin"), alertController.updateAlert);
+router.put("/:id/publish", authorize("admin"), alertController.publishAlert);
+router.put("/:id/dismiss", authorize("admin"), alertController.dismissAlert);
+router.put("/:id", authorize("admin"), alertController.updateAlert);
+router.delete("/:id", authorize("admin"), alertController.deleteAlert);
 
 export default router;

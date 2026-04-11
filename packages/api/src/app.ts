@@ -8,7 +8,7 @@ import cropPriceRoute from './routes/cropPriceRoute';
 import listingInterestRoute from './routes/listingInterestRoute';
 import authRouter from './routes/authRoute'
 import { sanitizeRequest } from './middleware/SanitizeMiddleware'
-import webhookRoute from './routes/webhookRoute'
+import alertRoute from './routes/alertRoute'
 
 export const createApp = () => {
     const app = express();
@@ -25,6 +25,7 @@ export const createApp = () => {
     app.use('/crop_prices', cropPriceRoute);
     app.use('/listing_interests', listingInterestRoute);
     app.use('/auth', authRouter)
+    app.use('/alerts', alertRoute);
 
     return app;
 };
