@@ -8,7 +8,7 @@ interface Price {
   min_price: number;
   max_price: number;
   avg_price: number;
-  created_at: string;
+  created_at: string | Date;
 }
 
 interface Crop {
@@ -42,9 +42,11 @@ export function PricesPage({ token }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [pricesData, cropsData] = await Promise.all([
         api.getPrices(token),
@@ -53,7 +55,8 @@ export function PricesPage({ token }: Props) {
       setPrices(pricesData);
       setCrops(cropsData);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load prices and crops:', err);
+      setError('Failed to load data. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -65,6 +68,7 @@ export function PricesPage({ token }: Props) {
     e.preventDefault();
     if (!form.crop.trim() || !form.region || !form.min_price || !form.max_price) return;
     setSaving(true);
+    setError(null);
 
     try {
       if (editingId) {
@@ -89,7 +93,8 @@ export function PricesPage({ token }: Props) {
       await reload();
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to save price:', err);
+      setError('Failed to save price. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -115,12 +120,14 @@ export function PricesPage({ token }: Props) {
   const handleDelete = async (id: number) => {
     if (!window.confirm('Delete this market price?')) return;
     setSaving(true);
+    setError(null);
     try {
       await api.deletePrice(token, id);
       if (editingId === id) cancelEdit();
       await reload();
     } catch (err) {
-      console.error(err);
+      console.error('Failed to delete price:', err);
+      setError('Failed to delete price. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -218,6 +225,16 @@ export function PricesPage({ token }: Props) {
 
       {loading ? (
         <p className="text-sm text-gray-400">Loading...</p>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-600">{error}</p>
+          <button
+            onClick={reload}
+            className="mt-2 text-sm text-red-700 hover:text-red-800 font-medium"
+          >
+            Try again
+          </button>
+        </div>
       ) : (
         <div className="border border-gray-200 rounded-xl overflow-x-auto">
           <table className="w-full text-xs sm:text-sm whitespace-nowrap">
