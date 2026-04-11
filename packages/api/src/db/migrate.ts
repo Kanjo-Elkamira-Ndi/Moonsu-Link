@@ -2,118 +2,183 @@ import { pool } from './pool';
 
 const migrations: Array<{ name: string; sql: string }> = [
   {
-    name: 'create users table',
+    name: 'enable pgcrypto extension',
+    sql: `CREATE EXTENSION IF NOT EXISTS pgcrypto;`,
+  },
+  {
+    name: 'create updated_at trigger function',
     sql: `
-      CREATE TABLE IF NOT EXISTS users (
-        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        phone       VARCHAR(20) UNIQUE NOT NULL,
-        email       VARCHAR(150) UNIQUE,
-        name        VARCHAR(100),
-        channel     VARCHAR(20) NOT NULL DEFAULT 'sms',
-        lang        VARCHAR(5)  NOT NULL DEFAULT 'en',
-        role        VARCHAR(20) NOT NULL DEFAULT 'farmer',
-        region      VARCHAR(100),
-        verified    BOOLEAN NOT NULL DEFAULT FALSE,
-        telegram_id VARCHAR(100),
-        telegram_phone VARCHAR(20),
-        whatsapp_phone VARCHAR(20),
-        id_pic_url TEXT,
-        selfie_pic_url TEXT,
-        selfie_with_id_pic_url TEXT,
-        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
+      CREATE OR REPLACE FUNCTION update_updated_at_column()
+      RETURNS TRIGGER AS $$
+      BEGIN
+         NEW.updated_at = NOW();
+         RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
     `,
   },
   {
-    name: 'add missing user profile columns',
+    name: 'create users table',
     sql: `
-      ALTER TABLE users
-        ADD COLUMN IF NOT EXISTS region VARCHAR(100),
-        ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT FALSE,
-        ADD COLUMN IF NOT EXISTS telegram_id VARCHAR(100),
-        ADD COLUMN IF NOT EXISTS telegram_phone VARCHAR(20),
-        ADD COLUMN IF NOT EXISTS whatsapp_phone VARCHAR(20),
-        ADD COLUMN IF NOT EXISTS email VARCHAR(150) UNIQUE,
-        ADD COLUMN IF NOT EXISTS id_pic_url TEXT,
-        ADD COLUMN IF NOT EXISTS selfie_pic_url TEXT,
-        ADD COLUMN IF NOT EXISTS selfie_with_id_pic_url TEXT;
+      CREATE TABLE IF NOT EXISTS users (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id          VARCHAR(100) UNIQUE,
+        name             VARCHAR(100) NOT NULL,
+        phone            VARCHAR(20) UNIQUE,
+        email            VARCHAR(150) UNIQUE,
+        role             VARCHAR(20) NOT NULL CHECK (role IN ('farmer', 'buyer', 'admin')),
+        region           VARCHAR(20) NOT NULL DEFAULT 'General' CHECK (
+                            region IN (
+                              'Adamaoua', 'Centre', 'Est', 'Extrême-Nord',
+                              'Littoral', 'Nord', 'Nord-Ouest',
+                              'Ouest', 'Sud', 'Sud-Ouest', 'General'
+                            )
+                         ),
+        telegram_id      VARCHAR(100) UNIQUE,
+        telegram_number  VARCHAR(20) UNIQUE,
+        whatsapp_number  VARCHAR(20) UNIQUE,
+        lang             VARCHAR(5) NOT NULL CHECK (lang IN ('en', 'fr')),
+        pic_folder       TEXT,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        verified         BOOLEAN NOT NULL DEFAULT FALSE
+      );
+
+      CREATE TRIGGER set_updated_at
+      BEFORE UPDATE ON users
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `,
   },
   {
     name: 'seed admin user',
     sql: `
-      INSERT INTO users (phone, email, name, role, lang, verified)
-      SELECT 'admin-login', 'moonsulink@admin.com', 'The Alchemist', 'admin', 'en', TRUE
-      WHERE NOT EXISTS (
-        SELECT 1 FROM users WHERE name = 'The Alchemist' AND email = 'moonsulink@admin.com' AND role = 'admin'
+      INSERT INTO users (user_id, name, phone, email, role, region, telegram_number, whatsapp_number, lang, verified)
+      VALUES (
+        'AA19952262',
+        'The Alchemist',
+        'admin-login',
+        'moonsulink@admin.com',
+        'admin',
+        'Centre',
+        '651650173',
+        '651650173',
+        'en',
+        true
+      )
+      ON CONFLICT DO NOTHING;
+    `,
+  },
+  {
+    name: 'create crops table',
+    sql: `
+      CREATE TABLE IF NOT EXISTS crops (
+        id         SERIAL PRIMARY KEY,
+        name       VARCHAR(100) NOT NULL UNIQUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TRIGGER set_updated_at_crops
+      BEFORE UPDATE ON crops
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `,
   },
   {
     name: 'create listings table',
     sql: `
       CREATE TABLE IF NOT EXISTS listings (
-        id          VARCHAR(8)  PRIMARY KEY,
-        farmer_id   UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        crop        VARCHAR(50) NOT NULL,
-        quantity_kg INTEGER     NOT NULL,
+        id          SERIAL PRIMARY KEY,
+        user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        crop_id     INTEGER NOT NULL REFERENCES crops(id) ON DELETE CASCADE,
+        quantity_kg INTEGER NOT NULL,
+        price       INTEGER NOT NULL,
         town        VARCHAR(100) NOT NULL,
-        region      VARCHAR(100),
-        price_fcfa  INTEGER     NOT NULL,
-        status      VARCHAR(20) NOT NULL DEFAULT 'active',
+        image_url   TEXT,
         expires_at  TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '7 days',
-        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-      CREATE INDEX IF NOT EXISTS listings_crop_region ON listings(crop, region);
-      CREATE INDEX IF NOT EXISTS listings_status ON listings(status);
-      CREATE INDEX IF NOT EXISTS listings_expires_at ON listings(expires_at);
-    `,
-  },
-  {
-    name: 'create market_prices table',
-    sql: `
-      CREATE TABLE IF NOT EXISTS market_prices (
-        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        crop        VARCHAR(50)  NOT NULL,
-        market      VARCHAR(100) NOT NULL,
-        region      VARCHAR(100),
-        min_price   INTEGER NOT NULL,
-        max_price   INTEGER NOT NULL,
-        recorded_at DATE    NOT NULL DEFAULT CURRENT_DATE,
-        created_by  VARCHAR(50) DEFAULT 'admin',
-        UNIQUE (crop, market, recorded_at)
-      );
-      CREATE INDEX IF NOT EXISTS prices_crop_date ON market_prices(crop, recorded_at DESC);
-    `,
-  },
-  {
-    name: 'create buyer_alerts table',
-    sql: `
-      CREATE TABLE IF NOT EXISTS buyer_alerts (
-        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id     UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        crop        VARCHAR(50) NOT NULL,
-        region      VARCHAR(100),
-        active      BOOLEAN NOT NULL DEFAULT TRUE,
         created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE (user_id, crop, region)
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TRIGGER set_updated_at_listings
+      BEFORE UPDATE ON listings
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `,
   },
   {
-    name: 'create connection_requests table',
+    name: 'create crop_prices table',
     sql: `
-      CREATE TABLE IF NOT EXISTS connection_requests (
-        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        listing_id  VARCHAR(8)  NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-        buyer_id    UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        status      VARCHAR(20) NOT NULL DEFAULT 'pending',
-        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE (listing_id, buyer_id)
+      CREATE TABLE IF NOT EXISTS crop_prices (
+        id         SERIAL PRIMARY KEY,
+        crop_id    INTEGER REFERENCES crops(id) ON DELETE SET NULL,
+        region     VARCHAR(20) NOT NULL DEFAULT 'General' CHECK (
+                      region IN (
+                        'Adamaoua', 'Centre', 'Est', 'Extrême-Nord',
+                        'Littoral', 'Nord', 'Nord-Ouest',
+                        'Ouest', 'Sud', 'Sud-Ouest', 'General'
+                      )
+                   ),
+        min_price  INTEGER NOT NULL,
+        max_price  INTEGER NOT NULL,
+        avg_price  INTEGER NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CHECK (min_price <= avg_price AND avg_price <= max_price),
+        UNIQUE (crop_id, region)
       );
+
+      CREATE TRIGGER set_updated_at_crop_prices
+      BEFORE UPDATE ON crop_prices
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `,
   },
+  {
+    name: 'create listing_interests table',
+    sql: `
+      CREATE TABLE IF NOT EXISTS listing_interests (
+        id         SERIAL PRIMARY KEY,
+        listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        message    TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (listing_id, user_id)
+      );
+
+      CREATE TRIGGER set_updated_at_listing_interests
+      BEFORE UPDATE ON listing_interests
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `,
+  },
+  {
+    name: 'create alerts table',
+    sql: `
+      CREATE TABLE IF NOT EXISTS alerts (
+        id         SERIAL PRIMARY KEY,
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        notice     TEXT NOT NULL,
+        advice     TEXT,
+        verified   BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TRIGGER set_updated_at_alerts
+      BEFORE UPDATE ON alerts
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `,
+  },
+  {
+    name: 'create processed_messages',
+    sql: `
+      CREATE TABLE processed_messages (
+        id SERIAL PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        message_id TEXT UNIQUE NOT NULL,
+        chat_id TEXT,
+        processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `
+  }
 ];
 
 async function migrate(): Promise<void> {

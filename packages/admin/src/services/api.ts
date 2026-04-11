@@ -30,6 +30,27 @@ export const api = {
   getListings: () =>
     request<any[]>('/listings'),
 
+  getPrices: (token: string) =>
+    request<any[]>('/crop_prices', {}, token),
+
+  createPrice: (
+    token: string,
+    data: { crop: string; region: string; min_price: number; max_price: number },
+  ) =>
+    request<any>('/crop_prices', { method: 'POST', body: JSON.stringify(data) }, token),
+
+  updatePrice: (
+    token: string,
+    id: number,
+    data: { crop?: string; region?: string; min_price?: number; max_price?: number },
+  ) =>
+    request<any>(`/crop_prices/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
+
+  deletePrice: (token: string, id: number) =>
+    request<{ message: string }>(`/crop_prices/${id}`, { method: 'DELETE' }, token),
+
+  getCrops: (token: string) =>
+    request<any[]>('/crops', {}, token),
   getCrops: () =>
     request<any[]>('/crops'),
 

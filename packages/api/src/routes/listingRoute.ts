@@ -10,10 +10,10 @@ router.get("/", authorize("admin"), listingController.getListings);
 
 router.delete("/:id", authorize("admin"), listingController.deleteListing);
 
-router.get("/user/:user_id", authorize("all"), listingController.getListingsByUserId);
+router.get("/user/:user_id", authorize("All"), listingController.getListingsByUserId);
 
 router.put("/:id", authorize(["admin", "farmer"]), listingController.updateListing);
 
-router.get("/verify", authorize("all"), listingController.getListingOfVerifyFamers);
+router.get("/verify", authorize("All"), listingController.getListingOfVerifyFamers);
 
 export default router;

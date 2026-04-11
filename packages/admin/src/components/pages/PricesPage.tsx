@@ -1,27 +1,63 @@
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../../services/api';
 
 interface Price {
-  id: string;
-  crop: string;
-  market: string;
-  region: string | null;
+  id: number;
+  crop_name: string;
+  region: string;
   min_price: number;
   max_price: number;
-  recorded_at: string;
+  avg_price: number;
+  created_at: string;
+}
+
+interface Crop {
+  id: number;
+  name: string;
 }
 
 
 
-const BLANK = { crop: '', market: '', region: '', min_price: '', max_price: '' };
+const REGIONS = [
+  'Adamaoua',
+  'Centre',
+  'Est',
+  'Extrême-Nord',
+  'Littoral',
+  'Nord',
+  'Nord-Ouest',
+  'Ouest',
+  'Sud',
+  'Sud-Ouest',
+  'General',
+];
+
+const BLANK = { crop: '', region: 'General', min_price: '', max_price: '' };
 
 export function PricesPage() {
   const [prices, setPrices] = useState<Price[]>([]);
+  const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(BLANK);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const [pricesData, cropsData] = await Promise.all([
+        api.getPrices(token),
+        api.getCrops(token),
+      ]);
+      setPrices(pricesData);
+      setCrops(cropsData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
   const reload = () =>
     api.getCropPrices()
         .then(setPrices)
@@ -32,9 +68,26 @@ export function PricesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.crop || !form.market || !form.min_price || !form.max_price) return;
+    if (!form.crop.trim() || !form.region || !form.min_price || !form.max_price) return;
     setSaving(true);
+
     try {
+      if (editingId) {
+        await api.updatePrice(token, editingId, {
+          crop: form.crop.trim(),
+          region: form.region,
+          min_price: Number(form.min_price),
+          max_price: Number(form.max_price),
+        });
+      } else {
+        await api.createPrice(token, {
+          crop: form.crop.trim(),
+          region: form.region,
+          min_price: Number(form.min_price),
+          max_price: Number(form.max_price),
+        });
+      }
+
       await api.upsertCropPrice( {
         crop: form.crop.toLowerCase(),
         market: form.market,
@@ -44,8 +97,40 @@ export function PricesPage() {
       });
       setSaved(true);
       setForm(BLANK);
+      setEditingId(null);
       await reload();
       setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEdit = (price: Price) => {
+    setEditingId(price.id);
+    setForm({
+      crop: price.crop_name,
+      region: price.region,
+      min_price: String(price.min_price),
+      max_price: String(price.max_price),
+    });
+    setSaved(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm(BLANK);
+    setSaved(false);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Delete this market price?')) return;
+    setSaving(true);
+    try {
+      await api.deletePrice(token, id);
+      if (editingId === id) cancelEdit();
+      await reload();
     } catch (err) {
       console.error(err);
     } finally {
@@ -57,44 +142,92 @@ export function PricesPage() {
     <div className="p-4 sm:p-6 space-y-6">
       <div>
         <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Market Prices</h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Add or update today's prices. Farmers query these via SMS/Telegram.</p>
+        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Add, edit, or delete market prices. New prices are broadcast to all users.</p>
       </div>
 
-      {/* Add / Edit form */}
       <div className="rounded-xl border border-gray-200 p-4 sm:p-5">
-        <h2 className="text-sm font-medium text-gray-700 mb-4">Update a price</h2>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <h2 className="text-sm font-medium text-gray-700">{editingId ? 'Edit market price' : 'Add market price'}</h2>
+          {editingId && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="text-sm text-brand-600 hover:underline"
+            >
+              Cancel edit
+            </button>
+          )}
+        </div>
+
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[
-            { key: 'crop',      label: 'Crop',       placeholder: 'e.g. maize' },
-            { key: 'market',    label: 'Market',     placeholder: 'e.g. Yaoundé' },
-            { key: 'region',    label: 'Region',     placeholder: 'e.g. Centre (optional)' },
-            { key: 'min_price', label: 'Min (FCFA/kg)', placeholder: '150' },
-            { key: 'max_price', label: 'Max (FCFA/kg)', placeholder: '200' },
-          ].map(({ key, label, placeholder }) => (
-            <div key={key}>
-              <label className="block text-xs text-gray-500 mb-1">{label}</label>
-              <input
-                type={key.includes('price') ? 'number' : 'text'}
-                value={(form as any)[key]}
-                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                placeholder={placeholder}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-            </div>
-          ))}
-          <div className="flex items-end">
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Crop</label>
+            <input
+              list="crop-options"
+              type="text"
+              value={form.crop}
+              onChange={(e) => setForm((f) => ({ ...f, crop: e.target.value }))}
+              placeholder="e.g. maize"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+            <datalist id="crop-options">
+              {crops.map((crop) => (
+                <option key={crop.id} value={crop.name} />
+              ))}
+            </datalist>
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Region</label>
+            <select
+              value={form.region}
+              onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              {REGIONS.map((region) => (
+                <option key={region} value={region}>{region}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Min price (FCFA/kg)</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={form.min_price}
+              onChange={(e) => setForm((f) => ({ ...f, min_price: e.target.value }))}
+              placeholder="150"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Max price (FCFA/kg)</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={form.max_price}
+              onChange={(e) => setForm((f) => ({ ...f, max_price: e.target.value }))}
+              placeholder="200"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div className="flex items-end gap-3 sm:col-span-2 lg:col-span-3">
             <button
               type="submit"
               disabled={saving}
               className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             >
-              {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save'}
+              {saving ? 'Saving...' : saved ? '✓ Saved' : editingId ? 'Update price' : 'Create price'}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Price table */}
       {loading ? (
         <p className="text-sm text-gray-400">Loading...</p>
       ) : (
@@ -103,28 +236,47 @@ export function PricesPage() {
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 uppercase tracking-wide">
                 <th className="text-left px-3 sm:px-4 py-3">Crop</th>
-                <th className="text-left px-3 sm:px-4 py-3">Market</th>
                 <th className="text-left px-3 sm:px-4 py-3">Region</th>
                 <th className="text-left px-3 sm:px-4 py-3">Min</th>
                 <th className="text-left px-3 sm:px-4 py-3">Max</th>
-                <th className="text-left px-3 sm:px-4 py-3">Date</th>
+                <th className="text-left px-3 sm:px-4 py-3">Avg</th>
+                <th className="text-left px-3 sm:px-4 py-3">Created</th>
+                <th className="text-left px-3 sm:px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {prices.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-3 sm:px-4 py-3 font-medium capitalize">{p.crop}</td>
-                  <td className="px-3 sm:px-4 py-3 text-gray-600">{p.market}</td>
-                  <td className="px-3 sm:px-4 py-3 text-gray-400">{p.region ?? '—'}</td>
-                  <td className="px-3 sm:px-4 py-3 text-gray-600">{p.min_price}</td>
-                  <td className="px-3 sm:px-4 py-3 text-gray-600">{p.max_price}</td>
-                  <td className="px-3 sm:px-4 py-3 text-gray-400 text-xs">{new Date(p.recorded_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</td>
+              {prices.map((price) => (
+                <tr key={price.id} className="hover:bg-gray-50">
+                  <td className="px-3 sm:px-4 py-3 font-medium capitalize">{price.crop_name}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{price.region}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{price.min_price}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{price.max_price}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-600">{price.avg_price}</td>
+                  <td className="px-3 sm:px-4 py-3 text-gray-400 text-xs">{new Date(price.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</td>
+                  <td className="px-3 sm:px-4 py-3">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => startEdit(price)}
+                        className="text-brand-600 hover:text-brand-800 text-xs font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(price.id)}
+                        className="text-red-600 hover:text-red-800 text-xs font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {prices.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                    No prices yet. Add one above.
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                    No market prices yet. Add one above.
                   </td>
                 </tr>
               )}

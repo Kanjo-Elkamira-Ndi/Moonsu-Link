@@ -1,6 +1,9 @@
 import { Listing } from "../models/listing";
 import { pool } from "../db/pool";
 import { AppError } from "../utils/AppError";
+import { getCropByName } from "./cropService";
+import { t } from '../config/templates';
+import type { Lang } from '../config/templates';
 
 export const createListing = async (data: Partial<Listing>): Promise<Listing> => {
     try {
@@ -156,3 +159,59 @@ export const getVerifiedListings = async () => {
         throw new AppError("Failed to fetch verified listings", 500);
     }
 };
+
+export const searchListings = async ({ crop, town, lang }: { crop: string; town?: string; lang: Lang }): Promise<string> => {
+    try {
+        // Find crop by name
+        const cropData = await getCropByName(crop);
+        if (!cropData) {
+            return t(lang, 'listing_not_found', { crop });
+        }
+
+        // Build query
+        let query = `
+            SELECT 
+                l.id,
+                l.quantity_kg,
+                l.price,
+                l.town,
+                l.created_at,
+                u.name AS user_name,
+                c.name AS crop_name
+            FROM listings l
+            JOIN users u ON l.user_id = u.id
+            JOIN crops c ON l.crop_id = c.id
+            WHERE c.id = $1 AND u.verified = true
+        `;
+        const params = [cropData.id];
+
+        if (town) {
+            query += ` AND LOWER(l.town) LIKE LOWER($2)`;
+            params.push(`%${town}%`);
+        }
+
+        query += ` ORDER BY l.created_at DESC LIMIT 10`;
+
+        const result = await pool.query(query, params);
+        const listings = result.rows;
+
+        if (listings.length === 0) {
+            return t(lang, 'listing_not_found', { crop });
+        }
+
+        // Format response
+        let response = t(lang, 'listing_header', { crop: cropData.name, count: listings.length });
+
+        listings.forEach(listing => {
+            response += `\n\n*${listing.user_name}* - ${listing.town}`;
+            response += `\n${listing.quantity_kg}kg @ ${listing.price} FCFA/kg`;
+        });
+
+        return response;
+    } catch (error) {
+        console.error('Error in searchListings:', error);
+        return t(lang, 'error_generic');
+    }
+};
+
+export const search = searchListings;
