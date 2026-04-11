@@ -1,4 +1,4 @@
-import { CropPrice } from "../models/cropPrice";
+import { CropPrice } from "../routes/models/cropPrice";
 import { pool } from "../db/pool";
 import { AppError } from "../utils/AppError";
 

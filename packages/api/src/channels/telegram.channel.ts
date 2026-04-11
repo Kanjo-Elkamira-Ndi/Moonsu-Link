@@ -1,54 +1,28 @@
-import { Request, Response } from 'express';
-import { messageRouter } from '../services/messageRouter.service';
+// packages/bot/src/channels/telegram/telegram.channel.ts
 
-export interface TelegramUpdate {
-  update_id: number;
-  message?: {
-    message_id: number;
-    from: { id: number; first_name: string; username?: string };
-    chat: { id: number };
-    text?: string;
-    date: number;
-  };
-}
+import { TelegramUpdate } from "../../../bot/src/types/telegram";
+import { handleBotUpdate } from "../../../bot/src/bot"; 
 
 /**
- * Handle an incoming Telegram webhook update.
- * Normalizes it and passes to the shared message router.
+ * Handles incoming Telegram webhook updates.
+ * This function acts as a thin channel adapter, parsing the Telegram update
+ * and delegating the core logic to the central bot handler.
  */
-export async function handleTelegramUpdate(req: Request, res: Response): Promise<void> {
-  // Always ACK Telegram immediately
-  res.status(200).json({ ok: true });
+export async function handleTelegramUpdate(req: any, res: any) {
+  // Respond quickly to Telegram to avoid timeouts
+  res.sendStatus(200);
 
-  const update = req.body as TelegramUpdate;
-  const msg = update.message;
+  try {
+    const telegramUpdate: TelegramUpdate = req.body;
 
-  if (!msg?.text) return;
+    // Log the full update for debugging purposes
+    console.log("FULL TELEGRAM UPDATE:", JSON.stringify(telegramUpdate, null, 2));
 
-  await messageRouter({
-    channel: 'telegram',
-    from: String(msg.from.id),
-    text: msg.text.trim(),
-    name: msg.from.first_name,
-    raw: update,
-  });
-}
+    // Delegate to the core bot logic, passing the channel type and the raw update
+    await handleBotUpdate("telegram", telegramUpdate);
 
-/**
- * Send a reply back via Telegram Bot API.
- */
-export async function sendTelegram(chatId: string, text: string): Promise<void> {
-  const { env } = await import('../config/env');
-  const url = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    console.error('[Telegram] sendMessage failed:', body);
+  } catch (err: any) {
+    console.error("Telegram update error:", err.message);
+   
   }
 }

@@ -1,4 +1,4 @@
-import { ListingInterest } from "../models/listingInterest";
+import { ListingInterest } from "../routes/models/listingInterest";
 import { pool } from "../db/pool";
 import { AppError } from "../utils/AppError";
 

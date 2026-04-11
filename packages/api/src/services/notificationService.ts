@@ -2,8 +2,8 @@ import { getUsers } from "./userService";
 import { sendTelegram } from "../channels/telegram.channel";
 import { sendSms } from "../channels/sms.channel";
 import { sendWhatsApp } from "../channels/whatsapp.channel";
-import type { CropPrice } from "../models/cropPrice";
-import type { Alert } from "../models/alert";
+import type { CropPrice } from "../routes/models/cropPrice";
+import type { Alert } from "../routes/models/alert";
 
 function getMessage(price: CropPrice, lang: string) {
   const crop = price.crop_name ?? 'crop';

@@ -1,4 +1,4 @@
-import { Crop } from "../models/crop";
+import { Crop } from "../routes/models/crop";
 import { pool } from "../db/pool";
 import { AppError } from "../utils/AppError";
 

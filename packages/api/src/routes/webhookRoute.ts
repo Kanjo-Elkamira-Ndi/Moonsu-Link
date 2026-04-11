@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { UnipileClient } from "unipile-node-sdk";
 import { pool } from "../db/pool";
+import { handleTelegramUpdate } from "../channels/telegram.channel";
 
 const router = Router();
 
@@ -8,6 +9,8 @@ const client = new UnipileClient(
     process.env.UNIPILE_DSN!,
     process.env.UNIPILE_API_KEY!
 );
+
+router.post('/telegram', handleTelegramUpdate);
 
 router.post('/', async (req: Request, res: Response) => {
     try {

@@ -9,6 +9,7 @@ import listingInterestRoute from './routes/listingInterestRoute';
 import authRouter from './routes/authRoute'
 import { sanitizeRequest } from './middleware/SanitizeMiddleware'
 import alertRoute from './routes/alertRoute'
+import webhookRoute from './routes/webhookRoute'
 
 export const createApp = () => {
     const app = express();
@@ -18,7 +19,7 @@ export const createApp = () => {
     app.get('/health', (_req, res) => {
         res.json({ status: 'ok', ts: new Date().toISOString() });
     });
-    // app.use('/', webhookRoute);
+    app.use('/webhook', webhookRoute);
     app.use('/users', userRoute);
     app.use('/crops', cropRoute);
     app.use('/listings', listingRoute);

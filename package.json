@@ -23,6 +23,7 @@
     "typescript": "^5.3.0"
   },
   "dependencies": {
-    "lucide-react": "^1.7.0"
+    "lucide-react": "^1.7.0",
+    "unipile-node-sdk": "^1.9.3"
   }
 }

@@ -1,4 +1,4 @@
-import { Alert } from "../models/alert";
+import { Alert } from "../routes/models/alert";
 import { pool } from "../db/pool";
 import { AppError } from "../utils/AppError";
 import * as notificationService from "./notificationService";

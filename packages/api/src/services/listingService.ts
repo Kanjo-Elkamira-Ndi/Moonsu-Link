@@ -1,4 +1,4 @@
-import { Listing } from "../models/listing";
+import { Listing } from "../routes/models/listing";
 import { pool } from "../db/pool";
 import { AppError } from "../utils/AppError";
 import { getCropByName } from "./cropService";

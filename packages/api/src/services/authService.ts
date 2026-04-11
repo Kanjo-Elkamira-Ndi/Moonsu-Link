@@ -1,4 +1,4 @@
-import { User } from "../models/user";
+import { User } from "../routes/models/user";
 import { pool } from "../db/pool";
 import { AppError } from "../utils/AppError";
 import { generateToken } from "../utils/JWT";
