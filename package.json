@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
+    "migrate": "node ./src/db/migrate.ts",
     "start": "node dist/index.js"
   },
   "keywords": [],
