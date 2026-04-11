@@ -73,7 +73,7 @@ const migrations: Array<{ name: string; sql: string }> = [
     sql: `
       CREATE TABLE IF NOT EXISTS crops (
         id         SERIAL PRIMARY KEY,
-        name       VARCHAR(100) NOT NULL,
+        name       VARCHAR(100) NOT NULL UNIQUE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
