@@ -26,3 +26,11 @@ export async function handleTelegramUpdate(req: any, res: any) {
    
   }
 }
+
+/**
+ * Send a message via Telegram Bot API.
+ * TODO: Implement using the bot's telegram API functions
+ */
+export async function sendTelegram(_to: string, _text: string): Promise<void> {
+  console.warn('[Telegram] Not yet implemented - SMS broadcasting will be used instead');
+}

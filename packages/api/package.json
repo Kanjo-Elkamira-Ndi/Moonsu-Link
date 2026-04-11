@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "migrate": "node -r ts-node/register -r dotenv/config src/db/migrate.ts dotenv_config_path=../../.env",
-    "seed": "node -r ts-node/register -r dotenv/config src/db/seeds/index.ts dotenv_config_path=../../.env"
+    "seed": "node -r ts-node/register -r dotenv/config src/db/seeds/index.ts dotenv_config_path=../../.env",
+    "test:sms": "node -r ts-node/register -r dotenv/config src/test-sms-broadcast.ts dotenv_config_path=../../.env"
   },
   "dependencies": {
     "express": "^4.18.2",
