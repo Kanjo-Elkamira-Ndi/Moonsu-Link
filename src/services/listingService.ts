@@ -11,7 +11,7 @@ export const createListing = async (data: Partial<Listing>): Promise<Listing> =>
 
         const result = await pool.query(
             `INSERT INTO listings (user_id, crop_id, quantity_kg, price, town, region, image_url)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
             [user_id, crop_id, quantity_kg, price, town, region, image_url || null]
         );
         // if sucessfull return the created listing using a join to obtain the userid, username, cropid and cropname
