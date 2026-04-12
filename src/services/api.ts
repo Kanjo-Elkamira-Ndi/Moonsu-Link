@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3005';
+const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3005/';
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const headers: Record<string, string> = {
@@ -22,38 +22,38 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 
 export const api = {
   login: (name: string, email: string) =>
-    request<{ token: string }>('/auth/admin', {
+    request<{ token: string }>('auth/admin', {
       method: 'POST',
       body: JSON.stringify({ name, email }),
     }),
 
   getListings: (token: string) =>
-    request<any[]>('/listings', {}, token),
+    request<any[]>('listings', {}, token),
 
   getPrices: (token: string) =>
-    request<any[]>('/crop_prices', {}, token),
+    request<any[]>('crop_prices', {}, token),
 
   createPrice: (
     token: string,
     data: { crop: string; region: string; min_price: number; max_price: number },
   ) =>
-    request<any>('/crop_prices', { method: 'POST', body: JSON.stringify(data) }, token),
+    request<any>('crop_prices', { method: 'POST', body: JSON.stringify(data) }, token),
 
   updatePrice: (
     token: string,
     id: number,
     data: { crop?: string; region?: string; min_price?: number; max_price?: number },
   ) =>
-    request<any>(`/crop_prices/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
+    request<any>(`crop_prices/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
 
   deletePrice: (token: string, id: number) =>
-    request<{ message: string }>(`/crop_prices/${id}`, { method: 'DELETE' }, token),
+    request<{ message: string }>(`crop_prices/${id}`, { method: 'DELETE' }, token),
 
   getCrops: (token: string) =>
-    request<any[]>('/crops', {}, token),
+    request<any[]>('crops', {}, token),
 
   getCropPrices: () =>
-    request<any[]>('/crop_prices'),
+    request<any[]>('crop_prices'),
 
   upsertCropPrice: (data: {
     crop: string;
@@ -62,36 +62,36 @@ export const api = {
     min_price: number;
     max_price: number;
   }) =>
-    request<{ ok: boolean }>('/crop_prices', {
+    request<{ ok: boolean }>('crop_prices', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   getUsers: (token: string) =>
-    request<any[]>('/users', {}, token),
+    request<any[]>('users', {}, token),
 
   // ── Alerts ────────────────────────────────────────────────────────────────
   getAlerts: (token: string) =>
-    request<any[]>('/alerts', {}, token),
+    request<any[]>('alerts', {}, token),
 
   createAlert: (
     token: string,
     data: { title: string; message: string; advice?: string; severity: string; region?: string; submitted_by?: string },
   ) =>
-    request<any>('/alerts', { method: 'POST', body: JSON.stringify(data) }, token),
+    request<any>('alerts', { method: 'POST', body: JSON.stringify(data) }, token),
 
   publishAlert: (token: string, id: number) =>
-    request<{ ok: boolean }>(`/alerts/${id}/publish`, { method: 'PUT' }, token),
+    request<{ ok: boolean }>(`alerts/${id}/publish`, { method: 'PUT' }, token),
 
   dismissAlert: (token: string, id: number) =>
-    request<{ ok: boolean }>(`/alerts/${id}/dismiss`, { method: 'PUT' }, token),
+    request<{ ok: boolean }>(`alerts/${id}/dismiss`, { method: 'PUT' }, token),
 
   updateAlert: (
     token: string,
     id: number,
     data: { title?: string; message?: string; advice?: string; severity?: string; region?: string },
   ) =>
-    request<any>(`/alerts/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
+    request<any>(`alerts/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token),
 
   deleteAlert: (token: string, id: number) =>
-    request<{ message: string }>(`/alerts/${id}`, { method: 'DELETE' }, token),
+    request<{ message: string }>(`alerts/${id}`, { method: 'DELETE' }, token),
 };
