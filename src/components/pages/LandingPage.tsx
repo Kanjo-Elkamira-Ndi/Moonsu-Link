@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 
-const TELEGRAM_URL  = 'https://t.me/your_bot_username'; // ← replace
-const WHATSAPP_URL  = 'https://wa.me/+237621606279';     // ← replace
+const TELEGRAM_URL  = 'https://t.me/MoonsuBot';
+const WHATSAPP_URL  = 'https://wa.me/+237621606279';    
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
