@@ -14,6 +14,6 @@ router.get("/user/:user_id", authorize("All"), listingController.getListingsByUs
 
 router.put("/:id", authorize(["admin", "farmer"]), listingController.updateListing);
 
-router.get("/verify", authorize("all"), listingController.getListingOfVerifyFamers);
+router.get("/verify", authorize("All"), listingController.getListingOfVerifyFamers);
 
 export default router;
