@@ -45,6 +45,7 @@ const migrations: Array<{ name: string; sql: string }> = [
         verified         BOOLEAN NOT NULL DEFAULT FALSE
       );
 
+      DROP TRIGGER IF EXISTS set_updated_at ON users;
       CREATE TRIGGER set_updated_at
       BEFORE UPDATE ON users
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -79,6 +80,7 @@ const migrations: Array<{ name: string; sql: string }> = [
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      DROP TRIGGER IF EXISTS set_updated_at_crops ON crops;
       CREATE TRIGGER set_updated_at_crops
       BEFORE UPDATE ON crops
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -107,6 +109,7 @@ const migrations: Array<{ name: string; sql: string }> = [
         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      DROP TRIGGER IF EXISTS set_updated_at_listings ON listings;
       CREATE TRIGGER set_updated_at_listings
       BEFORE UPDATE ON listings
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -118,7 +121,7 @@ const migrations: Array<{ name: string; sql: string }> = [
       CREATE TABLE IF NOT EXISTS crop_prices (
         id         SERIAL PRIMARY KEY,
         crop_id    INTEGER REFERENCES crops(id) ON DELETE SET NULL,
-        region      VARCHAR(20) NOT NULL DEFAULT 'General' CHECK (
+        region     VARCHAR(20) NOT NULL DEFAULT 'General' CHECK (
                       region IN (
                         'Adamawa', 'Centre', 'East', 'Far North',
                         'Littoral', 'North', 'North West',
@@ -134,6 +137,7 @@ const migrations: Array<{ name: string; sql: string }> = [
         UNIQUE (crop_id, region)
       );
 
+      DROP TRIGGER IF EXISTS set_updated_at_crop_prices ON crop_prices;
       CREATE TRIGGER set_updated_at_crop_prices
       BEFORE UPDATE ON crop_prices
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -152,6 +156,7 @@ const migrations: Array<{ name: string; sql: string }> = [
         UNIQUE (listing_id, user_id)
       );
 
+      DROP TRIGGER IF EXISTS set_updated_at_listing_interests ON listing_interests;
       CREATE TRIGGER set_updated_at_listing_interests
       BEFORE UPDATE ON listing_interests
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -161,50 +166,52 @@ const migrations: Array<{ name: string; sql: string }> = [
     name: 'create alerts table',
     sql: `
       CREATE TABLE IF NOT EXISTS alerts (
-        id         SERIAL PRIMARY KEY,
-        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        notice     TEXT NOT NULL,
-        advice     TEXT,
-        verified   BOOLEAN NOT NULL DEFAULT FALSE,
-        broadcasted   BOOLEAN NOT NULL DEFAULT FALSE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        id          SERIAL PRIMARY KEY,
+        user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        notice      TEXT NOT NULL,
+        advice      TEXT,
+        verified    BOOLEAN NOT NULL DEFAULT FALSE,
+        broadcasted BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      DROP TRIGGER IF EXISTS set_updated_at_alerts ON alerts;
       CREATE TRIGGER set_updated_at_alerts
       BEFORE UPDATE ON alerts
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `,
   },
   {
-    name: 'create processed_messages',
+    name: 'create processed_messages table',
     sql: `
-      CREATE TABLE processed_messages (
-        id SERIAL PRIMARY KEY,
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        message_id TEXT UNIQUE NOT NULL,
-        chat_id TEXT,
+      CREATE TABLE IF NOT EXISTS processed_messages (
+        id           SERIAL PRIMARY KEY,
+        user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        message_id   TEXT UNIQUE NOT NULL,
+        chat_id      TEXT,
         processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
-    `
+    `,
   },
   {
-    name: 'create message_counters',
+    name: 'create message_counters table',
     sql: `
-      CREATE TABLE message_counters (
-        id SERIAL PRIMARY KEY,
+      CREATE TABLE IF NOT EXISTS message_counters (
+        id         SERIAL PRIMARY KEY,
         user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        counter INTEGER DEFAULT 0,
-        response INTEGER DEFAULT 0,
+        counter    INTEGER DEFAULT 0,
+        response   INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-    CREATE TRIGGER set_updated_at_message_counters
-    BEFORE UPDATE ON message_counters
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
-    `
-  }
+      DROP TRIGGER IF EXISTS set_updated_at_message_counters ON message_counters;
+      CREATE TRIGGER set_updated_at_message_counters
+      BEFORE UPDATE ON message_counters
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `,
+  },
 ];
 
 async function migrate(): Promise<void> {
