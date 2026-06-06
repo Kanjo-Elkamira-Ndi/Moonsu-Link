@@ -1,33 +1,52 @@
-# 🌱 Moonsu Link
+# Moonsu Link
 
-> Connecting Cameroonian farmers with buyers via Telegram, SMS (MTN/Orange/Camtel), and WhatsApp.
-> Built for FarmerHack 2026 — Rebase Code Camp.
-
----
-
-## What it does
-
-Moonu Link is a multi-channel messaging platform that lets:
-- **Farmers** post their available produce and check real market prices
-- **Buyers/Aggregators** search available produce and subscribe to crop alerts
-- **Admins** update weekly market prices via a web dashboard
-
-All interactions happen over **Telegram**, **SMS**, or **WhatsApp** — no app download, no smartphone required beyond basic messaging.
+> Multi-channel agricultural marketplace connecting Cameroonian farmers and buyers via Telegram, WhatsApp, and SMS.
 
 ---
 
-## Proposed Monorepo Structure
+## Overview
+
+Moonsu Link is a platform that lets farmers list produce, check market prices, and receive alerts — all through basic messaging apps. No smartphone or internet required beyond WhatsApp and Telegram.
+
+**Channels:**
+- **Telegram bot** (`@MoonsuBot`) — Full-featured with inline keyboards, role-based onboarding, and AI assistant
+- **WhatsApp** — Counter-based conversational flow via Unipile
+- **SMS** — Twilio integration (configured, pending implementation)
+- **Admin dashboard** — Web app for managing listings, prices, users, and alerts
+
+---
+
+## Architecture
 
 ```
-Moonu Link/
-├── packages/
-│   ├── api/          # Node.js + Express backend — handles all bot logic, webhooks, DB
-│   ├── bot/          # Telegram polling process (local dev only)
-│   └── admin/        # React + Vite admin dashboard
-├── docs/             # Architecture notes, API docs
-├── scripts/          # Utility scripts
-├── .env.example      # Copy this to .env and fill in values
-└── package.json      # Workspace root
+User (Telegram / WhatsApp / SMS)
+        │
+        ▼
+  ┌─────────────┐     ┌──────────────┐
+  │  Telegram    │     │  WhatsApp    │
+  │  Bot API     │     │  Unipile     │
+  └──────┬──────┘     └──────┬───────┘
+         │                   │
+         ▼                   ▼
+  ┌─────────────────────────────────┐
+  │  server/  (Express + Node.js)   │
+  │  - REST API                     │
+  │  - Bot logic & webhooks         │
+  │  - PostgreSQL queries           │
+  └──────────────┬──────────────────┘
+                 │
+                 ▼
+         ┌──────────────┐
+         │  PostgreSQL  │
+         └──────────────┘
+                 ▲
+                 │
+  ┌──────────────┴──────────────────┐
+  │  client/  (React + Vite)        │
+  │  - Admin dashboard              │
+  │  - CRUD for listings, prices,   │
+  │    users, and alerts            │
+  └─────────────────────────────────┘
 ```
 
 ---
@@ -36,147 +55,189 @@ Moonu Link/
 
 | Layer | Technology |
 |---|---|
-| Backend | Node.js, Express, TypeScript |
+| Backend | Node.js, Express 5, TypeScript |
 | Database | PostgreSQL |
-| Bot channels | Telegram Bot API, Twilio SMS, Orange/MTN API (stubs) |
-| Admin frontend | React 18, Vite, Tailwind CSS |
-| Deployment | Railway / Render (API + DB), Vercel (Admin) |
+| Telegram | Bot API (long-polling / webhook) |
+| WhatsApp | Unipile SDK |
+| SMS | Twilio (configured) |
+| Admin frontend | React 19, Vite 8, Tailwind CSS 3 |
+| AI | OpenAI GPT-4o-mini (optional) |
 
 ---
 
-## Quick Start (Local Development)
+## Project Structure
+
+```
+FarmerHack/
+├── server/                  # Express backend
+│   ├── src/
+│   │   ├── index.ts         # Entry point
+│   │   ├── app.ts           # Express app factory
+│   │   ├── routes/          # API route definitions
+│   │   ├── controllers/     # Request handlers
+│   │   ├── services/        # Database queries
+│   │   ├── middleware/       # Auth, sanitization, rate limiting
+│   │   ├── channels/        # Telegram update handler
+│   │   ├── whatsapp/        # WhatsApp conversation flows
+│   │   ├── bot/             # Telegram bot commands & flows
+│   │   ├── db/              # Pool, migrations, seeds
+│   │   └── utils/           # JWT, sanitize, errors
+│   └── .env
+├── client/                  # React admin dashboard
+│   ├── src/
+│   │   ├── App.tsx          # Routes
+│   │   ├── services/api.ts  # API client
+│   │   ├── hooks/           # useAuth
+│   │   └── components/
+│   │       └── pages/       # Login, Listings, Prices, Users, Alerts
+│   └── .env
+├── .env                     # Root environment variables
+├── tsconfig.base.json       # Shared TS config
+└── README.md
+```
+
+---
+
+## Quick Start
 
 ### Prerequisites
+
 - Node.js >= 18
 - PostgreSQL running locally
 - A Telegram bot token from [@BotFather](https://t.me/BotFather)
+- A Unipile account with WhatsApp connected (optional for WhatsApp)
 
-### 1. Clone and install
+### Setup
 
 ```bash
+# 1. Clone and install dependencies
 git clone https://github.com/Kanjo-Elkamira-Ndi/Moonsu-Link.git
-cd Moonu-Link
-npm install
+cd Moonsu-Link
+cd server && npm install
+cd ../client && npm install
+cd ..
+
+# 2. Configure environment
+cp server/.env.example server/.env
+# Edit server/.env with your DATABASE_URL, TELEGRAM_BOT_TOKEN, etc.
+
+# 3. Create the database
+createdb moonsulinkdb
+cd server && npm run migrate
 ```
 
-### 2. Configure environment
+### Run
 
 ```bash
-cp .env.example .env
-# Edit .env with your values — at minimum:
-# DATABASE_URL, TELEGRAM_BOT_TOKEN, API_SECRET, ADMIN_PASSWORD, ADMIN_JWT_SECRET
+# Terminal 1 — Backend
+cd server && npm run dev
+
+# Terminal 2 — Admin dashboard
+cd client && npm run dev
 ```
 
-### 3. Create and seed the database
-
-```bash
-# Create a PostgreSQL database named 'Moonu Link', then:
-npm run migrate
-npm run seed
-```
-
-### 4. Start all services
-
-```bash
-npm run dev
-# API:   http://localhost:3001
-# Admin: http://localhost:5173
-# Bot:   Telegram polling active (forwards to API)
-```
-
-### 5. Test the bot
-
-Open Telegram, search for your bot by username, and send:
-```
-HELP
-```
+The API runs on `http://localhost:3005` and the dashboard on `http://localhost:5173`.
 
 ---
 
-## Bot Commands
+## Features
 
-| English | French | Description |
-|---|---|---|
-| `SELL maize 80kg Bafia 250` | `VENDRE maïs 80kg Bafia 250` | Post a harvest listing |
-| `FIND maize Bafia` | `CHERCHER maïs Bafia` | Find available produce |
-| `PRICE maize` | `PRIX maïs` | Get today's market prices |
-| `ALERT tomato West` | `ALERTE tomate Ouest` | Subscribe to crop alerts |
-| `INTERESTED abc12345` | `INTERESSE abc12345` | Express interest in a listing |
-| `MY LISTINGS` | `MESLISTES` | View your active listings |
-| `CANCEL abc12345` | `ANNULER abc12345` | Cancel a listing |
-| `HELP` | `AIDE` | Show all commands |
+### Telegram Bot
+
+- `/start` — Role-based onboarding (farmer / buyer)
+- Inline keyboard menus for listings, prices, alerts, and AI assistant
+- Multi-step listing creation and browsing
+- Real-time market price lookup by crop or region
+- AI-powered farming assistant (OpenAI, optional)
+- EN / FR bilingual support
+
+### WhatsApp (via Unipile)
+
+- Counter-based conversational flow
+- Browse verified listings
+- Check market prices by region or crop
+- Receive broadcast alerts
+
+### Admin Dashboard
+
+- Secure JWT-based login
+- **Listings** — View all produce listings with active/expired status
+- **Market Prices** — Add, edit, and delete crop prices by region
+- **Users** — View registered users and their platform connections
+- **Alerts** — Create, verify, dismiss, and broadcast alerts to all users
 
 ---
 
-## Deployment (Production)
+## API Overview
 
-### API + Database → Railway
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/auth/admin` | POST | — | Admin login |
+| `/auth/user` | POST | — | User login by platform ID |
+| `/auth/register` | POST | — | Register new user |
+| `/listings` | GET | Admin | List all listings |
+| `/listings` | POST | Admin/Farmer | Create listing |
+| `/listings/:id` | PUT | Admin/Farmer | Update listing |
+| `/listings/:id` | DELETE | Admin | Delete listing |
+| `/crop_prices` | GET | All | List market prices |
+| `/crop_prices` | POST | Admin | Create price entry |
+| `/crop_prices/:id` | PUT | Admin | Update price |
+| `/crop_prices/:id` | DELETE | Admin | Delete price |
+| `/users` | GET | Admin | List all users |
+| `/alerts` | GET | All | List alerts |
+| `/alerts` | POST | All | Create alert |
+| `/alerts/:id/verify` | PUT | Admin | Verify alert |
+| `/alerts/:id/dismiss` | PUT | Admin | Dismiss alert |
+| `/alerts/broadcast/:id` | POST | Admin | Broadcast via WhatsApp |
+| `/whatsapp` | POST | — | WhatsApp webhook (Unipile) |
+| `/webhook/telegram` | POST | — | Telegram webhook |
+
+---
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `PORT` | Server port (default: 3005) |
+| `API_SECRET` | JWT signing secret |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token from BotFather |
+| `UNIPILE_DSN` | Unipile API hostname |
+| `UNIPILE_API_KEY` | Unipile API key |
+| `UNIPILE_ACCOUNT_ID` | Unipile account ID |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token |
+| `TWILIO_PHONE_NUMBER` | Twilio phone number |
+| `OPENAI_API_KEY` | OpenAI API key (optional) |
+| `VITE_API_URL` | API URL for the frontend |
+
+---
+
+## Deployment
+
+### Backend
+
+Deploy `server/` to any Node.js host (Railway, Render, Fly.io). Set all environment variables in the hosting dashboard. Configure the Telegram webhook:
 
 ```bash
-# Install Railway CLI
-npm install -g @railway/cli
-
-railway login
-railway init
-railway up
-
-# Add environment variables in Railway dashboard
-# Set the Telegram webhook after deploy:
-curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-app.railway.app/webhooks/telegram"
+curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://your-app.com/webhook/telegram"
 ```
 
-### Admin Dashboard → Vercel
+### Frontend
+
+Build and deploy `client/` to Vercel or any static host:
 
 ```bash
-cd packages/admin
-npx vercel --prod
-# Set VITE_API_URL to your Railway API URL in Vercel dashboard
+cd client
+npm run build
+# Deploy the dist/ folder
 ```
 
-### SMS via Twilio
+Set `VITE_API_URL` to your deployed API URL.
 
-1. Create a Twilio account at twilio.com
-2. Get a phone number
-3. In Twilio console, set the SMS webhook URL to: `https://your-api-url/webhooks/sms`
-4. Add `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` to your env
+### WhatsApp
 
----
-
-## Team Task Split
-
-| Task | File(s) | Who |
-|---|---|---|
-| DB schema & migrations | `packages/api/src/db/migrate.ts` | Backend lead |
-| Command handlers | `packages/api/src/services/commandHandler.service.ts` | Backend lead |
-| Message templates | `packages/api/src/config/templates.ts` | Anyone |
-| SMS channel (Twilio) | `packages/api/src/channels/sms.channel.ts` | Backend |
-| Telegram channel | `packages/api/src/channels/telegram.channel.ts` | Backend |
-| Admin dashboard | `packages/admin/src/` | Frontend |
-| Seed data (real prices) | `packages/api/src/db/seeds/index.ts` | Anyone |
-| Deployment | `railway.toml`, Vercel | DevOps |
-
----
-
-## Environment Variables Reference
-
-See `.env.example` for all variables with descriptions.
-
-**Minimum required to run locally:**
-- `DATABASE_URL`
-- `TELEGRAM_BOT_TOKEN`
-- `API_SECRET` (any random 32-char string)
-- `ADMIN_PASSWORD`
-- `ADMIN_JWT_SECRET` (any random 32-char string)
-
----
-
-## Adding WhatsApp (Future)
-
-When Meta Business verification is complete:
-
-1. Add `WHATSAPP_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` to `.env`
-2. Implement the incoming message parser in `packages/api/src/routes/webhook.routes.ts` (the route stub is already there)
-3. The `WhatsAppChannel.send()` in `packages/api/src/channels/whatsapp.channel.ts` is already implemented
+Expose the server via ngrok or a public URL, then set the webhook URL in the Unipile dashboard to `https://your-url.com/whatsapp`.
 
 ---
 
